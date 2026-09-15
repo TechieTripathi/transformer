@@ -1,0 +1,54 @@
+name: Deploy Slidev to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Verify every number on the slides
+        run: python3 -m pip install --quiet numpy tiktoken && npm run verify
+
+      - name: Check click contracts
+        run: node scripts/check-clicks.mjs
+
+      - name: Build the deck
+        run: >
+          npm run build --
+          --out dist
+          --base /${{ github.event.repository.name }}/
+          --router-mode hash
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
