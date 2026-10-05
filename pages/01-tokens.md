@@ -80,7 +80,8 @@ luck, and it runs out fast."
 cats, it learned from the behaviour of the number 8415 across the internet.
 Nobody ever told it what a cat is.
 
-Likely student question: "Why not just use letters? Or whole words?" Answer:
+Likely student question: "Why not just use letters? Or whole words?" (The
+next slide now puts this trade-off on screen; a one-line answer here is enough.) Answer:
 "Both were tried. Letters make the sequences enormously long - and the longer
 the sequence, the more expensive attention gets, as we'll see in chapter 4.
 Whole words means a dictionary of millions, and you're helpless the first time
@@ -88,7 +89,148 @@ someone invents a word. Chunks are the compromise, and they're chosen by a
 compression algorithm that just looks for common byte patterns. Nobody sat
 down and designed these."
 
-Transition: "The compromise has consequences. Here is the first one."
+Transition: "Letters, whole words, or chunks? Let's put all three side by side."
+-->
+
+---
+chapter: '1 · Text is not letters'
+clicks: 4
+zoom: 0.9
+---
+
+# Three ways to cut a sentence
+
+<span class="eyebrow why">Why chunks?</span>
+
+<div class="key-message">Every tokenizer trades <b>how many different pieces it knows</b> against <b>how many pieces a sentence turns into</b>.</div>
+
+<div class="cuts">
+  <div v-click="1" class="cut">
+    <div class="cl"><b>Whole words</b><span>knows: hundreds of thousands</span></div>
+    <TokenStrip :tokens="['The', ' teddy', ' bears', ' were', ' reading']" />
+    <div class="cp bad"><code>bear</code> and <code>bears</code> are unrelated entries. A word it never saw becomes <code>&lt;UNK&gt;</code> &#8212; &#8220;no idea&#8221;.</div>
+  </div>
+  <div v-click="2" class="cut">
+    <div class="cl"><b>Single characters</b><span>knows: a few hundred</span></div>
+    <TokenStrip :tokens="[...'The teddy bears were reading']" />
+    <div class="cp bad">Nothing is ever unknown &#8212; but <b>28</b> tokens instead of 5, and attention&#8217;s work grows with the <b>square</b> of that.</div>
+  </div>
+  <div v-click="3" class="cut">
+    <div class="cl"><b>Subwords</b><span>knows: 100,277 (GPT-4)</span></div>
+    <TokenStrip :tokens="['The', ' ted', 'dy', ' bears', ' were', ' reading']" />
+    <div class="cp good">Common words stay whole; rare ones break into reusable pieces &#8212; <code>un|bear|able</code> shares <code>bear</code>.</div>
+  </div>
+</div>
+
+<div v-click="4" class="transition-line">Every modern model uses subwords. <span class="arrow">So who decides where the cuts go? Nobody &#8212; an algorithm counts.</span></div>
+
+<style>
+.cuts { display: flex; flex-direction: column; gap: 0.1em; margin-top: 0.2em; }
+.cut { display: grid; grid-template-columns: 10.5em 1fr 15em; align-items: center; gap: 0.9em; }
+.cut .tokwrap { margin: 0.15em 0; }
+.cl b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1rem; color: var(--ann-indigo); }
+.cl span { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--ann-muted); }
+.cp { font-size: 0.76rem; line-height: 1.35; color: var(--ann-ink-soft); padding-left: 0.6em; }
+.cp.bad { border-left: 3px solid var(--ann-ember); }
+.cp.good { border-left: 3px solid var(--ann-circuit); }
+.cp b { color: var(--ann-ink); }
+.slidev-layout .key-message { margin: 0.25em 0 0.3em; font-size: 1rem; }
+.slidev-layout .transition-line { margin-top: 0.35em; padding-top: 0.35em; }
+</style>
+
+<!--
+This answers the question the previous slide's notes predicted ("why not
+letters, or whole words?") - on screen this time, because it is the design
+decision everything in this chapter flows from.
+
+[click] Whole words. Five tokens - short and readable. Two problems, both on
+the slide: bear and bears are as unrelated as bear and banana, and the first
+time somebody invents a word, the model has nothing to say about it except
+"unknown".
+
+[click] Characters. The opposite trade. Nothing can ever be unknown - every
+word is spelled from the same few hundred symbols. But the sentence is now 28
+tokens long, and (promise this, chapter 4 pays it off) attention compares
+every token with every token, so 28 tokens is about thirty times the work of
+5, not five times.
+
+[click] Subwords: the compromise every modern model uses. Note that "teddy"
+got cut into ted|dy - the cuts are not linguistic, they are statistical, and
+that will matter for the rest of the chapter. And un|bear|able shows the
+benefit: a long rare word is built from pieces the model already knows.
+
+[click] The hand-off. Ask: "So who chose those cuts?" and let someone guess
+"a linguist". Then: "Nobody. An algorithm counted."
+
+The trade-off in one sentence, for anyone writing notes: vocabulary size goes
+up, sequence length goes down; subwords sit in the middle. (Stanford CME 295,
+lecture 1, makes exactly this comparison around the 20-minute mark.)
+
+Transition: "Here is the whole algorithm, on a corpus small enough to count."
+-->
+
+---
+chapter: '1 · Text is not letters'
+clicks: 5
+zoom: 0.94
+---
+
+# How the chunks are chosen
+
+<span class="eyebrow math">Byte-pair encoding</span>
+
+<div class="key-message">Start from single letters. Count every neighbouring pair. Glue the most common pair into a new token. <b>Repeat.</b></div>
+
+<BpeTrace :step="[0, 1, 3, 5, 7, 7][$clicks]" :unseen="$clicks >= 5" compact />
+
+<div v-click="5" class="transition-line">The vocabulary is whatever the <b>training text</b> made common. <span class="arrow">Train it mostly on English and other languages are left in small, expensive pieces &#8212; you will see the bill in a few minutes.</span></div>
+
+<style>
+.slidev-layout .key-message { margin: 0.25em 0 0.5em; font-size: 1rem; }
+.slidev-layout .transition-line { margin-top: 0.5em; padding-top: 0.4em; }
+</style>
+
+<!--
+Every number on this slide comes from scripts/verify-attention.py, section 6.
+The corpus is six words with made-up frequencies; the algorithm is the real
+one.
+
+Before clicking: "Six words, each seen a few times. Every word starts as
+letters. On the right, every pair of neighbouring letters, counted across the
+whole corpus."
+
+[click] Merge 1. "e" next to "a" appears 13 times - in read, reading, bear,
+bears. Glue it. ea is now a token, and it lights up in every word at once.
+That is the whole algorithm; everything else is repetition.
+
+[click] Merges 2 and 3: in, then ing. Point at ring, sing and reading all
+gaining the same orange chunk. The tokenizer has discovered the suffix -ing.
+Nobody told it English has suffixes.
+
+[click] Merges 4 and 5: ead, then read.
+
+[click] Merges 6 and 7: bea, then bear. Now bears is bear|s and reading is
+read|ing. Every word is one to three tokens.
+
+[click] The payoff: two words that were NEVER in the corpus. bearing becomes
+bear|ing; rings becomes r|ing|s. Replaying the merges in order handles any
+word - in the worst case it falls back to letters - so a subword tokenizer
+essentially never needs the "unknown" token.
+
+Then the transition line, and plant the seed for the Korean slide: the merges
+reflect whatever text the tokenizer was trained on.
+
+Detail for the curious: real tokenizers start from the 256 possible BYTES
+rather than letters (that is the "byte" in byte-pair), run tens of thousands
+of merges, and break ties by their own rules. GPT-2 did 50,000 merges.
+
+Likely student question: "Is ead a meaningful token?" Answer: "No - and
+that is the point. It is a stepping stone that happened to be frequent. Real
+vocabularies are full of chunks like that, which is part of why the model
+behaves strangely on spelling."
+
+Transition: "So the cuts are statistics, not meaning. Here is the first
+consequence."
 -->
 
 ---
@@ -454,7 +596,72 @@ Likely student question: "Are there still tokens like this?" Answer: "Almost
 certainly a few, in every model. People go looking for them - it's a small
 research sport. But they're much rarer now that people know to check."
 
-Transition: "Let me put all five of those together."
+Transition: "One last kind of token - the ones that exist on purpose."
+-->
+
+---
+chapter: '1 · Text is not letters'
+clicks: 4
+---
+
+# Tokens that are not text
+
+<span class="eyebrow structure">Special tokens</span>
+
+<div class="key-message">A few ids are reserved for <b>signals</b>, not words. The model learns what they mean the way it learns everything else: from where they turn up.</div>
+
+<div class="specials">
+  <div v-click="1" class="sp"><code>&lt;BOS&gt;</code><b>begin</b><span>&#8220;A sequence starts here.&#8221; Gives the first real word something to look back at.</span></div>
+  <div v-click="1" class="sp"><code>&lt;EOS&gt;</code><b>end</b><span>&#8220;I&#8217;m done.&#8221; Generation stops when the model <i>picks</i> this token &#8212; chapter 5.</span></div>
+  <div v-click="2" class="sp"><code>&lt;PAD&gt;</code><b>filler</b><span>Makes a batch of sentences the same length so they can be processed together. Masked out, never read.</span></div>
+  <div v-click="2" class="sp"><code>&lt;UNK&gt;</code><b>unknown</b><span>&#8220;No idea what this was.&#8221; Subword tokenizers almost never need it &#8212; they fall back to letters or bytes.</span></div>
+</div>
+
+<div v-click="3" class="real">In GPT-2 the end marker is spelled <code>&lt;|endoftext|&gt;</code>, id <b>50256</b> &#8212; the very last of its <b>50,257</b> entries, added on top of the 50,000 learned merges and 256 bytes.</div>
+
+<div v-click="4" class="transition-line">The names are <b>conventions, not standards</b>. Every model family picks its own, and chat models add more &#8212; such as markers for who is speaking. <span class="arrow">The idea is the same everywhere.</span></div>
+
+<style>
+.specials { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35em 1.2em; margin: 0.3em 0; }
+.sp { display: grid; grid-template-columns: 4.6em 4.8em 1fr; align-items: baseline; gap: 0.5em; padding: 0.35em 0.7em; border-radius: 0.45em; background: var(--ann-paper-raised); border: 1px solid var(--ann-line); }
+.sp code { font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; font-weight: 700; color: var(--ann-ember); }
+.sp b { font-family: 'Space Grotesk', sans-serif; color: var(--ann-indigo); font-size: 0.9rem; }
+.sp span { font-size: 0.76rem; color: var(--ann-ink-soft); line-height: 1.35; }
+.real { margin-top: 0.5em; font-size: 0.85rem; color: var(--ann-ink-soft); }
+.real code, .sp code { font-family: 'JetBrains Mono', monospace; font-variant-ligatures: none; }
+.real b { color: var(--ann-indigo); }
+.slidev-layout .key-message { margin: 0.3em 0 0.4em; font-size: 1rem; }
+.slidev-layout .transition-line { margin-top: 0.5em; padding-top: 0.4em; }
+</style>
+
+<!--
+Short. A natural follow-on from GoldMagikarp: that was a token that should
+not have existed; these are tokens that exist on purpose and never appear in
+ordinary text.
+
+[click] Begin and end. End is the important one - it is how a model knows to
+stop talking. Plant that: "In chapter 5 the model writes one token at a time.
+It stops when the token it picks is this one."
+
+[click] Padding and unknown. Padding is pure plumbing - hardware likes
+rectangles, so short sentences get filler, and the filler is masked so
+nothing attends to it. Unknown is the word-level tokenizer's escape hatch;
+the BPE slide showed why subword tokenizers barely need it.
+
+[click] A real one, measured: GPT-2's vocabulary is 256 bytes + 50,000
+merges + 1 special = 50,257, and the special is the last id. (Verified by
+scripts/verify-attention.py against tiktoken.)
+
+[click] The honesty point. The angle-bracket names are textbook notation;
+every model spells them differently, and some use one token for both begin
+and end. Chat models add role markers so the model can tell your message
+from its own replies.
+
+Likely student question: "Can I type <|endoftext|> into ChatGPT and make it
+stop?" Answer: "Services treat those strings specially - typed text is
+tokenized as ordinary characters, so no. Which is deliberate."
+
+Transition: "Let me put all of that together."
 -->
 
 ---

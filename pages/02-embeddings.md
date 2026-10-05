@@ -94,7 +94,79 @@ model. Hundreds to tens of thousands. GPT-3 used 12,288 per token. And the
 table has one row per token in the vocabulary - about 50,000 rows - so that
 one table alone is over 600 million numbers."
 
-Transition: "If a word is a list of numbers, we can draw it."
+Transition: "Why not the simplest list there is - one switch per word?"
+-->
+
+---
+chapter: '2 · Turning words into numbers'
+clicks: 4
+---
+
+# Why not one switch per word?
+
+<span class="eyebrow why">The obvious first try</span>
+
+<div class="key-message">The simplest list: one slot for every word in the vocabulary, all <b>0</b> except a single <b>1</b>. It is called <b>one-hot</b>.</div>
+
+<div v-click="1" class="oh">
+  <table>
+    <thead><tr><th></th><th>slot&nbsp;cat</th><th>slot&nbsp;dog</th><th>slot&nbsp;car</th><th>&#8230; 50,254 more</th></tr></thead>
+    <tbody>
+      <tr><td><code>cat</code></td><td class="one">1</td><td>0</td><td>0</td><td>0 0 0 &#8230;</td></tr>
+      <tr><td><code>dog</code></td><td>0</td><td class="one">1</td><td>0</td><td>0 0 0 &#8230;</td></tr>
+      <tr><td><code>car</code></td><td>0</td><td>0</td><td class="one">1</td><td>0 0 0 &#8230;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div v-click="2" class="obs">
+  <div>Compare any two rows: they <b>never</b> have a 1 in the same slot. <code>cat</code> and <code>dog</code> share exactly as much as <code>cat</code> and <code>car</code> &#8212; nothing.</div>
+</div>
+
+<div v-click="3" class="obs">
+  <div>One-hot can say <b>&#8220;different&#8221;</b>. It can never say <b>&#8220;similar&#8221;</b>. And every list is as long as the vocabulary: <b>50,257</b> numbers per token for GPT-2, all but one of them zero.</div>
+</div>
+
+<div v-click="4" class="transition-line">What we want is <b>short</b> lists where similar words <b>share</b> numbers. <span class="arrow">That is what an embedding is &#8212; and a short list of numbers is a place.</span></div>
+
+<style>
+.oh { margin: 0.3em 0; max-width: 40em; }
+.oh table { font-size: 0.9rem; }
+.oh td, .oh th { text-align: center; }
+.oh td:first-child { text-align: left; }
+.oh td { font-family: 'JetBrains Mono', monospace; color: var(--ann-muted); }
+.oh td.one { color: var(--ann-ember); font-weight: 700; font-size: 1.1rem; }
+.oh code { color: var(--ann-ink); }
+.obs { display: flex; flex-direction: column; gap: 0.3em; margin-top: 0.45em; font-size: 0.86rem; color: var(--ann-ink-soft); }
+.obs b { color: var(--ann-indigo); }
+.slidev-layout .key-message { margin: 0.3em 0 0.3em; font-size: 1rem; }
+.slidev-layout .transition-line { margin-top: 0.5em; padding-top: 0.4em; }
+</style>
+
+<!--
+A step back, deliberately. The previous slide jumped straight to vectors;
+someone in the room is thinking "why not just one slot per word?" - answer
+it before they ask.
+
+[click] The table. One-hot is genuinely how the token enters the machine in
+the textbook picture - looking up an embedding row is mathematically the
+same as multiplying this one-hot vector by the embedding table.
+
+[click] The flaw. No two rows overlap anywhere. For anyone who knows dot
+products (chapter 4 will teach them): every pair has dot product 0 - they are
+orthogonal. There is no notion of "closer".
+
+[click] Two problems: no similarity, and absurd length. 50,257 slots to say
+one thing.
+
+[click] The fix is the embedding from the previous slide - short, dense, and
+learned so that similar words overlap.
+
+Likely student question: "So is one-hot useless?" Answer: "As a meaning, yes.
+As a selector, it's exactly right: multiply one-hot by the embedding table
+and you pick out one row. That is all an embedding lookup is."
+
+Transition: "If a word is a short list of numbers, we can draw it."
 -->
 
 ---
@@ -151,6 +223,110 @@ Likely student question: "Who decides the axes?" Answer: "Nobody. I picked
 these two directions to draw a readable picture. In the real space the
 directions are not labelled and mostly do not correspond to anything you
 could name - which will matter in chapter 8."
+
+Transition: "So how does a word end up in the right place?"
+-->
+
+---
+chapter: '2 · Turning words into numbers'
+clicks: 5
+zoom: 0.95
+---
+
+# Where the places come from: guess the neighbour
+
+<span class="eyebrow math">Word2Vec, 2013</span>
+
+<div class="key-message">Give a network a pointless-looking game &#8212; <b>predict a word from its neighbours</b> &#8212; and to play it well, it has to put similar words in similar places.</div>
+
+<div class="w2v">
+  <div v-click="1" class="game">
+    <div class="gh">The game</div>
+    <div class="gs">the <span class="blank">___</span> slept on the sofa</div>
+    <div class="ga">cat? dog? <span class="no">car?</span></div>
+    <div class="gv"><b>CBOW</b>: neighbours &#8594; the missing word.<br><b>Skip-gram</b>: one word &#8594; its neighbours.</div>
+  </div>
+  <div v-click="2" class="net">
+    <svg viewBox="0 0 470 190" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="20" width="34" height="150" rx="5" fill="var(--ann-paper-raised)" stroke="var(--ann-line)" />
+      <text x="27" y="186" class="t">one-hot</text>
+      <text x="27" y="14" class="t">50,000</text>
+      <rect x="10" y="80" width="34" height="10" fill="var(--ann-ember)" />
+      <path d="M 48 95 L 168 95" stroke="var(--ann-muted)" stroke-width="2" marker-end="url(#w2a)" />
+      <rect x="172" y="65" width="60" height="60" rx="6" fill="var(--ann-circuit-soft)" stroke="var(--ann-circuit)" stroke-width="2.5" />
+      <text x="202" y="100" class="t big">300</text>
+      <text x="202" y="56" class="t lit">the embedding</text>
+      <path d="M 236 95 L 356 95" stroke="var(--ann-muted)" stroke-width="2" marker-end="url(#w2a)" />
+      <rect x="360" y="20" width="34" height="150" rx="5" fill="var(--ann-paper-raised)" stroke="var(--ann-line)" />
+      <text x="377" y="14" class="t">50,000</text>
+      <text x="377" y="186" class="t">scores</text>
+      <text x="436" y="99" class="t">softmax</text>
+      <defs><marker id="w2a" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="var(--ann-muted)" /></marker></defs>
+    </svg>
+  </div>
+</div>
+
+<div v-click="3" class="obs">
+  <div><code>cat</code> and <code>dog</code> both fit the blank in thousands of sentences, so the network does best by giving them <b>similar middle numbers</b>. <code>car</code> almost never fits, so it ends up far away.</div>
+</div>
+
+<div v-click="4" class="key-message small">Nobody wanted the game. Throw the predictions away and <b>keep the middle layer</b>: that row of 300 numbers <i>is</i> the word&#8217;s embedding.</div>
+
+<div v-click="5" class="transition-line">A made-up task whose real product is a by-product is called a <b>proxy task</b>. <span class="arrow">And the places it produced had a surprise hidden in them.</span></div>
+
+<style>
+.w2v { display: grid; grid-template-columns: 1fr 1.25fr; gap: 1.2em; align-items: center; margin: 0.2em 0; }
+.game { border: 1px solid var(--ann-line); border-left: 4px solid var(--ann-ember); border-radius: 0.5em; padding: 0.5em 0.9em; background: var(--ann-paper-raised); }
+.gh { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ann-muted); }
+.gs { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; margin: 0.15em 0; }
+.blank { color: var(--ann-ember); font-weight: 700; }
+.ga { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--ann-circuit); }
+.ga .no { color: var(--ann-muted); text-decoration: line-through; }
+.gv { margin-top: 0.35em; font-size: 0.76rem; color: var(--ann-ink-soft); line-height: 1.4; }
+.gv b { color: var(--ann-indigo); }
+.net svg { width: 100%; max-height: 27vh; display: block; }
+.net .t { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: var(--ann-ink-soft); text-anchor: middle; }
+.net .t.big { font-size: 18px; font-weight: 700; fill: var(--ann-circuit); }
+.net .t.lit { fill: var(--ann-circuit); font-weight: 600; }
+.obs { margin-top: 0.3em; font-size: 0.82rem; color: var(--ann-ink-soft); }
+.obs b { color: var(--ann-indigo); }
+.slidev-layout .key-message { margin: 0.25em 0 0.25em; font-size: 0.98rem; }
+.slidev-layout .key-message.small { font-size: 0.9rem; margin-top: 0.35em; }
+.slidev-layout .transition-line { margin-top: 0.35em; padding-top: 0.35em; }
+</style>
+
+<!--
+Optional: mark `hide: true` if short of time. The analogy slide that follows
+still works without it; it just loses its "where did these come from".
+
+This is the classic way embeddings were first learned at scale (Mikolov et
+al., 2013). Modern LLMs learn their embedding table as part of the whole
+model instead, but the principle - similar contexts push vectors together -
+is identical, and this is the cleanest place to see it.
+
+[click] The game. Fill the blank out loud with the room: cat, dog... nobody
+says car. Then the two flavours, in one breath each: CBOW guesses the middle
+word from its neighbours; skip-gram goes the other way.
+
+[click] The network. Left: the word as a one-hot switch (previous slide).
+Middle: a small layer - 300 numbers. Right: a score for every word in the
+vocabulary, softmax, compare with the real answer, nudge the numbers. Repeat
+over billions of words.
+
+[click] Why similar words end up close: because cat and dog are interchangeable
+in so many sentences, the cheapest way to predict well is to give them
+nearly the same middle layer.
+
+[click] The twist - say it with relish: nobody cares about the predictions.
+The by-product is the prize.
+
+[click] Name it: a proxy task. This idea comes back enormously - "predict the
+next word" is itself a proxy task, and it is how every LLM is trained
+(chapter 7).
+
+Likely student question: "Is this what GPT uses?" Answer: "Not this exact
+network - GPT learns its embedding table together with everything else. But
+the reason its embeddings cluster is the same reason these do."
 
 Transition: "Here is the thing that made people sit up when this was
 discovered."
@@ -372,7 +548,79 @@ limit is an active research area, and it's why models advertise a context
 length - we'll meet that in chapter 6."
 
 Transition: "Now every word is a vector that knows what it is and where it
-is. Which finally lets us ask the interesting question."
+is. But not yet what it means HERE."
+-->
+
+---
+chapter: '2 · Turning words into numbers'
+clicks: 4
+---
+
+# One vector per word is not enough
+
+<span class="eyebrow why">What is still missing</span>
+
+<div class="key-message">The embedding table holds <b>one</b> row per token, looked up the same way in every sentence.</div>
+
+<div v-click="1" class="bank">
+  <div class="bs">She sat on the river <b>bank</b>.</div>
+  <div class="bs">She paid the cheque into the <b>bank</b>.</div>
+  <div class="bv">&#8594; the <b>same</b> vector, both times (plus a different position)</div>
+</div>
+
+<div v-click="2" class="obs">
+  <div>Position tells the model <b>where</b> <code>bank</code> is. Nothing yet tells it <b>which</b> bank.</div>
+  <div>Word2Vec vectors have the same limit: one meaning per word, blended over every sentence it ever appeared in.</div>
+</div>
+
+<div v-click="3">
+
+<Callout>
+  <template #misconception>The embedding already knows what the word means here.</template>
+  <template #clarification>It knows what the word means <b>on average</b>. What it means <b>in this sentence</b> has to be worked out from the other words &#8212; and nothing we have built so far looks at the other words.</template>
+</Callout>
+
+</div>
+
+<div v-click="4" class="transition-line">So each vector has to be <b>changed by its neighbours</b>. <span class="arrow">Which neighbours, and by how much? That is chapter 3.</span></div>
+
+<style>
+.bank { display: flex; flex-direction: column; gap: 0.15em; margin: 0.4em 0; padding: 0.5em 1em; background: var(--ann-paper-raised); border: 1px solid var(--ann-line); border-radius: 0.5em; max-width: 34em; }
+.bs { font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; }
+.bs b { color: var(--ann-ember); }
+.bv { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--ann-ink-soft); margin-top: 0.2em; }
+.bv b { color: var(--ann-ember); }
+.obs { display: flex; flex-direction: column; gap: 0.3em; margin-top: 0.4em; font-size: 0.85rem; color: var(--ann-ink-soft); }
+.obs b { color: var(--ann-indigo); }
+.slidev-layout .key-message { margin: 0.3em 0 0.3em; font-size: 1rem; }
+.slidev-layout .callout { font-size: 0.78rem; }
+.slidev-layout .transition-line { margin-top: 0.45em; padding-top: 0.35em; }
+</style>
+
+<!--
+The bridge into chapter 3, made explicit. Everything in chapter 2 gives each
+token a vector that ignores every other token.
+
+[click] Read both sentences. Ask: "Same word - same meaning?" Obviously not.
+Then point at the third line: as far as the input is concerned, it is the
+same vector. Only the position part differs, and the position does not know
+about rivers or money.
+
+[click] Two observations. The second ties back to the Word2Vec slide: one
+vector per word is the core limitation of static embeddings, and fixing it
+is the whole reason the rest of the machine exists.
+
+[click] The correction. "On average" is the key phrase - the embedding for
+bank sits somewhere between the river sense and the money sense.
+
+[click] The question for chapter 3, framed as a requirement: the vector must
+be changed by its neighbours.
+
+Likely student question: "Couldn't the table just have two rows for bank?"
+Answer: "Then you'd need to know which one to look up - which is the problem
+we're trying to solve. And most words have many shades of meaning, not two."
+
+Transition: "Let me show you where we've got to."
 -->
 
 ---
@@ -405,10 +653,9 @@ Thirty seconds. Point at the three lit boxes.
 [click] The three-line recap. Say the third line with emphasis - it is the
 one that keeps coming back, and by chapter 7 they should be expecting it.
 
-[click] The hand-off, and make the problem vivid before you leave: "Right
-now, the vector for 'bank' is the same whether I'm talking about a river or a
-mortgage. Every word is frozen at its dictionary meaning, sitting alone. That
-is obviously not how language works."
+[click] The hand-off. The river-bank slide just made the problem vivid, so
+one sentence is enough: "Every word is still frozen at its average meaning,
+sitting alone. That is obviously not how language works."
 
 Transition: "So let's look at what a word's neighbours do to it."
 -->

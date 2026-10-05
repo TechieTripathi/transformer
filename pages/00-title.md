@@ -146,5 +146,62 @@ lose the thread for a couple of minutes; the recurring map is how they get
 back on without asking. Say that out loud - it gives people permission to
 stop panicking when they drift, which is most of what stops them re-engaging.
 
+Transition: "First, ninety seconds of history."
+-->
+
+---
+chapter: ''
+clicks: 3
+---
+
+# How we got here
+
+<span class="eyebrow structure">Why one design gets two hours</span>
+
+<div class="key-message">For a decade, every language task had its own model. Then one design turned out to <b>keep improving as it grew</b> &#8212; and that is the design this lecture takes apart.</div>
+
+<Timeline :up-to="$clicks === 0 ? 1 : $clicks === 1 ? 2 : 5" :highlight="$clicks >= 1 ? 2 : undefined" />
+
+<div v-click="2" class="obs">
+  <div><b>Before 2017</b>, recurrent networks read one word at a time. A translator, a sentiment classifier and a name-finder were three separately built and trained models.</div>
+  <div><b>2017</b>: the Transformer threw the one-word-at-a-time reading away and kept only attention. Give it more text, more compute and more parameters and it kept getting better &#8212; reliably, for years.</div>
+</div>
+
+<div v-click="3" class="transition-line">Every chatbot you have used is that 2017 design, scaled up. <span class="arrow">So what does it actually do with your text?</span></div>
+
+<style>
+.obs { display: flex; flex-direction: column; gap: 0.3em; margin-top: 0.2em; font-size: 0.84rem; color: var(--ann-ink-soft); }
+.obs b { color: var(--ann-indigo); }
+.slidev-layout .key-message { margin: 0.3em 0 0.2em; font-size: 1rem; }
+.slidev-layout .transition-line { margin-top: 0.5em; padding-top: 0.4em; }
+</style>
+
+<!--
+One minute. Optional: mark this slide `hide: true` if the session is running
+short - nothing later depends on it except a one-line callback in chapter 8.
+
+Start with only the first two dots visible: "Around 2010, if you wanted a
+computer to translate, you built a translation model. If you wanted it to
+tell a good review from a bad one, you built a different model. One model per
+job."
+
+[click] 2017 lights up. "Then a paper with a slightly cheeky title -
+'Attention Is All You Need' - proposed a design with no word-by-word reading
+at all. Just attention, which is chapters 3 and 4 of today."
+
+[click] The rest of the line, and the reason it matters: the property that
+made this design take over was not that it was cleverer on day one. It was
+that it scaled. More data, more compute, bigger model - better results, and
+it kept being true. Then 2022 made it a product everybody could talk to, and
+now the frontier is models that act: plan, call tools, take steps.
+
+[click] The hand-off. This is the same story Stanford's CME 295 opens with;
+if anyone wants the long version after today, that lecture is on YouTube.
+
+Likely student question: "Is an LLM the same thing as a transformer?"
+Answer: "No - and chapter 8 has a slide on exactly that. Short version: the
+transformer is the design; an LLM is that design at enormous size, trained
+on an enormous amount of text."
+
 Transition: "So. What does a machine see when you type a word?"
 -->

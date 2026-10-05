@@ -88,6 +88,10 @@ blue always value, on every slide and inside every formula. Point that out
 once, now - it means a student who cannot yet follow the symbols can still
 follow the colours.
 
+Terminology to drop in once: because every word plays all three roles
+against the SAME sentence, this is called SELF-attention. The name goes on
+screen at the end of the chapter, next to the formula.
+
 Transition: "There's an analogy everyone uses for this. I'm going to give it
 to you and then break it."
 -->
@@ -779,8 +783,94 @@ For the keen: this is not a new invention. It is a statistical technique
 called kernel smoothing, which dates to 1964. Worth saying - it takes some of
 the mystique off, in a good way, and it is true.
 
-Transition: "One question I've been dodging: the model computes ONE set of
-weights. Is one enough?"
+Transition: "Let's write the whole chapter as one line."
+-->
+
+---
+chapter: '4 · Attention, mechanically'
+clicks: 4
+---
+
+# The whole chapter in one line
+
+<span class="eyebrow math">Self-attention</span>
+
+<div class="eqn">
+  <span class="fn">Attention</span>(<span class="q">Q</span>, <span class="k">K</span>, <span class="v">V</span>) =
+  <span class="fn">softmax</span><span class="paren">(</span><span class="frac"><span class="top"><span class="q">Q</span><span class="k">K</span><sup>T</sup></span><span class="bot">&#8730;d<sub>k</sub></span></span><span class="paren">)</span>&#8202;<span class="v">V</span>
+</div>
+
+<div v-click="1" class="calc-strip parts">
+  <span class="calc-chip q"><span class="lbl">Q K<sup>T</sup> &#183; step 3</span>every question against every advert</span>
+  <span class="calc-op">&#8594;</span>
+  <span class="calc-chip"><span class="lbl">&#247; &#8730;d<sub>k</sub> &#183; step 4</span>keep softmax soft</span>
+  <span class="calc-op">&#8594;</span>
+  <span class="calc-chip upd"><span class="lbl">softmax &#183; step 5</span>scores into shares</span>
+  <span class="calc-op">&#8594;</span>
+  <span class="calc-chip v"><span class="lbl">&#215; V &#183; step 6</span>blend the values</span>
+</div>
+
+<div v-click="2" class="shapes">
+  <span>X <b>3&#215;4</b></span><span class="calc-op">&#8594;</span>
+  <span><span class="q">Q</span>, <span class="k">K</span>, <span class="v">V</span> <b>3&#215;2</b> each</span><span class="calc-op">&#8594;</span>
+  <span><span class="q">Q</span><span class="k">K</span><sup>T</sup> <b>3&#215;3</b></span><span class="calc-op">&#8594;</span>
+  <span>output <b>3&#215;2</b></span>
+  <span class="shnote">one row per word, all the way through &#8212; the worked example</span>
+</div>
+
+<div v-click="3" class="obs">
+  <div>Why <b>self</b>-attention? Because the <span class="q">queries</span>, <span class="k">keys</span> and <span class="v">values</span> all come from the <b>same</b> sentence: it is the sentence attending to itself.</div>
+  <div>When queries come from one sequence and keys and values from another, it is called <b>cross-attention</b> &#8212; the original 2017 translator used both.</div>
+</div>
+
+<div v-click="4" class="transition-line">This is the line from the 2017 paper, and you have now computed every symbol in it by hand. <span class="arrow">One question remains: that is <i>one</i> set of weights. Is one enough?</span></div>
+
+<style>
+.eqn { font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; display: flex; align-items: center; justify-content: center; gap: 0.18em; margin: 0.2em 0 0.4em; color: var(--ann-ink); }
+.eqn .fn { font-weight: 600; color: var(--ann-indigo); }
+.eqn .paren { font-size: 2.4rem; font-weight: 300; color: var(--ann-muted); }
+.eqn .frac { display: inline-flex; flex-direction: column; align-items: center; font-size: 1.45rem; line-height: 1.15; margin: 0 0.1em; }
+.eqn .top { border-bottom: 2px solid var(--ann-ink); padding: 0 0.2em; }
+.eqn .bot { padding-top: 0.05em; }
+.parts { justify-content: center; font-size: 0.82rem; }
+.parts .lbl { text-transform: none; }
+.shapes { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0.5em; margin-top: 0.55em; font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; }
+.shapes b { color: var(--ann-indigo); }
+.shnote { flex-basis: 100%; text-align: center; font-size: 0.7rem; color: var(--ann-muted); }
+.obs { display: flex; flex-direction: column; gap: 0.25em; margin-top: 0.45em; font-size: 0.82rem; color: var(--ann-ink-soft); }
+.obs b { color: var(--ann-indigo); }
+.slidev-layout .transition-line { margin-top: 0.45em; padding-top: 0.35em; }
+</style>
+
+<!--
+The formula, finally, after the arithmetic - never before it. Every symbol
+is something they computed on the last six slides; the colours match the
+worked example (query purple, key orange, value blue).
+
+Read the formula aloud, slowly, pointing at each piece.
+
+[click] The four pieces mapped to the steps of the worked example: score
+every pair, scale, softmax, blend. If anyone got lost in the middle of the
+chapter, this is their recovery point.
+
+[click] The shapes. Three words in, three rows out, at every stage; the
+score matrix is square because every word is compared with every word. The
+only thing that changes is the width of each row. In a real model it is the
+same picture with thousands of rows and wider vectors.
+
+[click] Name it properly: self-attention. Plant cross-attention for anyone
+who goes on to read the 2017 paper - its translator had an encoder reading
+the source sentence and a decoder writing the translation, and the decoder
+attends to the encoder. Part II of this course covers it.
+
+[click] The "you've earned this" moment. It is genuinely the central line of
+the paper and they now understand it from the inside.
+
+Likely student question: "What's the T?" Answer: "Transpose - flip K so
+that each row of Q meets each row of K. It's exactly the 'every question
+against every advert' grid from step 3."
+
+Transition: "The model computes ONE set of weights. Is one enough?"
 -->
 
 ---
@@ -802,8 +892,8 @@ clicks: 5
 </div>
 
 <div v-click="3" class="obs">
-  <div>Each head gets its <b>own</b> <span class="q">W<sub>Q</sub></span>, <span class="k">W<sub>K</sub></span> and <span class="v">W<sub>V</sub></span>, so each learns to ask a different kind of question. Their answers get joined back together.</div>
-  <div>GPT-3 ran <b>96</b> heads in each of <b>96</b> layers.</div>
+  <div>Each head gets its <b>own</b> <span class="q">W<sub>Q</sub></span>, <span class="k">W<sub>K</sub></span> and <span class="v">W<sub>V</sub></span>, so each learns to ask a different kind of question. Their answers are laid side by side and mixed by one more learned matrix, <b>W<sub>O</sub></b>.</div>
+  <div>Each head works in a slice of the vector: <b>d<sub>k</sub> = d<sub>model</sub> &#247; heads</b>. GPT-3: 12,288 &#247; 96 = <b>128</b> numbers per head, in each of <b>96</b> layers.</div>
 </div>
 
 <div v-click="4">
@@ -837,8 +927,13 @@ relationship, and a sentence has many at once.
 honest that most heads are not interpretable. Do not present a tidy picture
 you are about to demolish.
 
-[click] The mechanism (own matrices, results joined) and the scale. Let the
-96 x 96 land.
+[click] The mechanism (own matrices, results concatenated, then mixed by
+W_O) and the scale. Let the 96 x 96 land. Splitting the vector between heads
+means many heads cost about the same as one big head - you get many
+questions for the price of one.
+
+For anyone who has met image models: this is the same move as a convolution
+layer having many filters, each learning to detect a different pattern.
 
 [click] The callout. This is a correction to something students will read
 everywhere online, because the original paper said heads "may" be
@@ -871,7 +966,7 @@ clicks: 2
 
 <div v-click="1" class="recap">
   <div>Every word produces a <span class="q">query</span>, a <span class="k">key</span> and a <span class="v">value</span> &#8212; three views of one vector, through three <b>learned</b> matrices.</div>
-  <div><span class="q">Query</span> &#183; <span class="k">key</span> gives a score. Divide by &#8730;d. Softmax turns scores into shares that add to <b>1</b>.</div>
+  <div><span class="q">Query</span> &#183; <span class="k">key</span> gives a score. Divide by &#8730;d<sub>k</sub>. Softmax turns scores into shares that add to <b>1</b>.</div>
   <div>The output is those shares applied to the <span class="v">values</span> &#8212; a <b>blend</b>. Meaning moves from where it is to where it is needed.</div>
 </div>
 

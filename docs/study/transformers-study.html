@@ -1,0 +1,468 @@
+<!doctype html>
+<!--
+  TEMPLATE for transformers-study.html. Do not open this file directly.
+  `npm run study` (scripts/build-study.mjs) injects the flashcards, quiz,
+  cheat sheet and deck numbers at the marker below and writes
+  transformers-study.html next to it. Edit the Markdown, not the output.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transformers Study Kit</title>
+<style>
+:root {
+  --paper: #f7f4ee; --raised: #ffffff; --ink: #1b1d23; --ink-soft: #4a4c54; --muted: #7d766a;
+  --line: #ddd7c8; --ember: #c94a1f; --ember-soft: #f7ded3; --circuit: #0e7c86; --circuit-soft: #d9edee;
+  --indigo: #363b6e; --indigo-soft: #e2e3ef; --q: #8e3bb8; --k: #c2620a; --v: #1f6fb2;
+  --ok: #1f7a4a; --ok-soft: #dcefe4; --bad: #b3261e; --bad-soft: #f6dcda;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14161b; --raised: #1c1f26; --ink: #ece9e2; --ink-soft: #b7b3a8; --muted: #938f80;
+    --line: #33363f; --ember: #ff8058; --ember-soft: #3a2620; --circuit: #4fd0da; --circuit-soft: #17343a;
+    --indigo: #a78bfa; --indigo-soft: #262a4a; --q: #c79bea; --k: #f0a45e; --v: #7ab8e8;
+    --ok: #6fd39b; --ok-soft: #173326; --bad: #ff8a80; --bad-soft: #3a1f1d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14161b; --raised: #1c1f26; --ink: #ece9e2; --ink-soft: #b7b3a8; --muted: #938f80;
+  --line: #33363f; --ember: #ff8058; --ember-soft: #3a2620; --circuit: #4fd0da; --circuit-soft: #17343a;
+  --indigo: #a78bfa; --indigo-soft: #262a4a; --q: #c79bea; --k: #f0a45e; --v: #7ab8e8;
+  --ok: #6fd39b; --ok-soft: #173326; --bad: #ff8a80; --bad-soft: #3a1f1d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+code, .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+a { color: var(--circuit); }
+header.top {
+  position: sticky; top: 0; z-index: 5; background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.bar { max-width: 1040px; margin: 0 auto; padding: 12px 16px 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.bar h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.01em; }
+.bar .sub { color: var(--muted); font-size: 0.8rem; flex: 1; min-width: 12em; }
+.theme-btn { background: none; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; cursor: pointer; }
+nav.tabs { max-width: 1040px; margin: 0 auto; padding: 8px 16px 0; display: flex; gap: 4px; overflow-x: auto; }
+nav.tabs button {
+  border: none; background: none; color: var(--ink-soft); font: inherit; font-weight: 600; font-size: 0.92rem;
+  padding: 8px 12px; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap;
+}
+nav.tabs button[aria-selected="true"] { color: var(--circuit); border-bottom-color: var(--circuit); }
+main { max-width: 1040px; margin: 0 auto; padding: 20px 16px 64px; }
+section[hidden] { display: none; }
+.card { background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.muted { color: var(--muted); }
+.btn { font: inherit; font-size: 0.9rem; font-weight: 600; border-radius: 8px; padding: 7px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--raised); color: var(--ink); }
+.btn:hover { border-color: var(--circuit); }
+.btn.primary { background: var(--circuit); border-color: var(--circuit); color: var(--paper); }
+.btn.ok { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.btn.bad { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+select, input[type="number"] { font: inherit; font-size: 0.9rem; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--raised); color: var(--ink); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* cheat sheet */
+.md h1 { font-size: 1.6rem; margin: 0 0 0.4em; }
+.md h2 { font-size: 1.2rem; margin: 1.6em 0 0.5em; color: var(--indigo); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.md h3 { font-size: 1.02rem; margin: 1.2em 0 0.4em; }
+.md p, .md li { color: var(--ink-soft); }
+.md strong { color: var(--ink); }
+.md pre { background: var(--raised); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 0.82rem; line-height: 1.5; }
+.md table { border-collapse: collapse; width: 100%; font-size: 0.88rem; display: block; overflow-x: auto; }
+.md th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border-bottom: 2px solid var(--ink); padding: 6px 10px; }
+.md td { border-bottom: 1px solid var(--line); padding: 6px 10px; vertical-align: top; }
+.md code { background: var(--indigo-soft); color: var(--indigo); padding: 1px 5px; border-radius: 4px; }
+.md pre code { background: none; color: inherit; padding: 0; }
+.md hr { border: none; border-top: 1px dashed var(--line); margin: 1.5em 0; }
+
+/* flashcards */
+.fc-wrap { display: grid; gap: 14px; }
+.flash {
+  min-height: 240px; display: flex; flex-direction: column; justify-content: center; gap: 12px;
+  cursor: pointer; user-select: none; text-align: center; padding: 28px 22px; position: relative;
+}
+.flash .meta { position: absolute; top: 10px; left: 14px; right: 14px; display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); }
+.flash .tag { font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+.tag.Core { background: var(--circuit-soft); color: var(--circuit); }
+.tag.Deeper { background: var(--indigo-soft); color: var(--indigo); }
+.flash .q { font-size: 1.2rem; font-weight: 600; }
+.flash .a { font-size: 1.02rem; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 12px; }
+.flash .hint { font-size: 0.78rem; color: var(--muted); }
+.flash code { background: var(--indigo-soft); color: var(--indigo); padding: 1px 5px; border-radius: 4px; }
+.progress { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.progress > span { display: block; height: 100%; background: var(--circuit); }
+
+/* quiz */
+.qlist { display: grid; gap: 14px; }
+.qhead { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+.qprompt { font-weight: 600; margin-bottom: 10px; }
+.qprompt code, .explain code { background: var(--indigo-soft); color: var(--indigo); padding: 1px 5px; border-radius: 4px; }
+.opts { display: grid; gap: 6px; }
+.opt { text-align: left; font: inherit; font-size: 0.94rem; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+.opt:hover:not(:disabled) { border-color: var(--circuit); }
+.opt:disabled { cursor: default; }
+.opt.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 600; }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.explain { margin-top: 10px; font-size: 0.9rem; color: var(--ink-soft); border-left: 3px solid var(--circuit); padding-left: 10px; }
+.score { position: sticky; top: 92px; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; }
+.score b { color: var(--circuit); font-size: 1.1rem; }
+
+/* playground */
+.pg { display: grid; gap: 18px; }
+.pg h2 { font-size: 1.1rem; margin: 0 0 6px; }
+.pg p.lead { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.92rem; }
+.mats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.mat h3 { margin: 0 0 6px; font-size: 0.85rem; }
+.mat table { border-collapse: collapse; }
+.mat td { padding: 2px 3px; }
+.mat td.lbl { font-size: 0.8rem; color: var(--muted); padding-right: 8px; font-family: "JetBrains Mono", monospace; }
+.mat input { width: 4.2em; text-align: right; }
+.out table { border-collapse: collapse; font-family: "JetBrains Mono", monospace; font-size: 0.88rem; }
+.out th, .out td { padding: 5px 10px; text-align: right; border-bottom: 1px solid var(--line); }
+.out th { color: var(--muted); font-weight: 500; }
+.out tr.hl td { background: var(--ember-soft); }
+.cell-bar { display: inline-block; height: 8px; background: var(--circuit); border-radius: 2px; vertical-align: middle; margin-left: 6px; }
+.headline { margin-top: 10px; font-size: 0.95rem; }
+.headline b { color: var(--ember); }
+.bars { display: grid; gap: 6px; margin-top: 10px; }
+.pbar { display: grid; grid-template-columns: 4.5em 1fr 4.5em; align-items: center; gap: 8px; font-family: "JetBrains Mono", monospace; font-size: 0.88rem; }
+.pbar .track { height: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.pbar .fill { height: 100%; background: var(--circuit); }
+.pbar.dropped .fill { background: var(--line); }
+.pbar.dropped { color: var(--muted); text-decoration: line-through; }
+.chunks { display: inline-flex; font-family: "JetBrains Mono", monospace; font-size: 1.1rem; color: #111827; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 2px 8px; }
+.bperow { display: flex; align-items: center; gap: 12px; margin: 4px 0; }
+.bperow .cnt { color: var(--muted); font-size: 0.85rem; font-family: "JetBrains Mono", monospace; }
+.vchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.vchip { font-family: "JetBrains Mono", monospace; font-size: 0.9rem; padding: 1px 8px; border-radius: 4px; color: #111827; border: 1px solid #e5e7eb; }
+input[type="range"] { width: min(360px, 100%); accent-color: var(--circuit); }
+footer { max-width: 1040px; margin: 0 auto; padding: 0 16px 40px; font-size: 0.78rem; color: var(--muted); }
+@media (max-width: 600px) {
+  .flash { min-height: 220px; padding: 34px 14px 20px; }
+  .flash .q { font-size: 1.05rem; }
+  .score { top: 108px; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <h1>Transformers Study Kit</h1>
+    <span class="sub">Parts I &amp; II + Stanford CME 295 lecture 1 · cheat sheet, flashcards, quiz, playground</span>
+    <button class="theme-btn" id="themeBtn" type="button">theme</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="sheet" aria-selected="true">Cheat sheet</button>
+    <button role="tab" data-tab="cards" aria-selected="false">Flashcards</button>
+    <button role="tab" data-tab="quiz" aria-selected="false">Quiz</button>
+    <button role="tab" data-tab="play" aria-selected="false">Playground</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-sheet"><div class="md card" id="sheet"></div></section>
+
+  <section id="tab-cards" hidden>
+    <div class="fc-wrap">
+      <div class="row">
+        <select id="fcGroup" aria-label="Group"></select>
+        <select id="fcLevel" aria-label="Level">
+          <option value="">All levels</option><option>Core</option><option>Deeper</option>
+        </select>
+        <label class="row muted" style="gap:4px;font-size:0.85rem"><input type="checkbox" id="fcHideKnown"> hide known</label>
+        <button class="btn" id="fcShuffle" type="button">Shuffle</button>
+      </div>
+      <div class="progress" aria-hidden="true"><span id="fcProg"></span></div>
+      <div class="card flash" id="flash" tabindex="0" role="button" aria-label="Flashcard: press space to flip"></div>
+      <div class="row" style="justify-content:space-between">
+        <button class="btn" id="fcPrev" type="button">← Prev</button>
+        <div class="row">
+          <button class="btn bad" id="fcAgain" type="button">Again</button>
+          <button class="btn ok" id="fcKnow" type="button">I know it</button>
+        </div>
+        <button class="btn" id="fcNext" type="button">Next →</button>
+      </div>
+      <p class="muted" style="font-size:0.8rem;margin:0">Keys: <span class="mono">space</span> flip · <span class="mono">←/→</span> move · <span class="mono">k</span> know · <span class="mono">a</span> again. “Known” is remembered in this browser only.</p>
+    </div>
+  </section>
+
+  <section id="tab-quiz" hidden>
+    <div class="card score"><span>Score: <b id="qScore">0</b> / <span id="qDone">0</span> answered · <span id="qTotal"></span> questions</span><button class="btn" id="qReset" type="button">Reset</button></div>
+    <div class="qlist" id="qlist"></div>
+  </section>
+
+  <section id="tab-play" hidden>
+    <div class="pg">
+      <div class="card">
+        <h2>1 · Attention by hand</h2>
+        <p class="lead">The Part I worked example (<span class="mono">glass, dropped, it</span>; d<sub>k</sub> = 2). Edit any query, key or value and watch <span class="mono">softmax(QKᵀ/√d_k)V</span> update. The deck’s answer for <i>it → glass</i> is <b id="deckHead"></b>.</p>
+        <div class="mats" id="mats"></div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="attReset" type="button">Reset to deck values</button></div>
+        <div class="out" id="attOut" style="margin-top:14px;overflow-x:auto"></div>
+      </div>
+      <div class="card">
+        <h2>2 · Temperature, top-k, top-p</h2>
+        <p class="lead">Prompt “The sky is ___”, the deck’s logits. Greedy is T → 0.</p>
+        <div class="row">
+          <label>T = <span class="mono" id="tVal"></span> <input type="range" id="tSlider" min="0.1" max="2" step="0.05" value="1"></label>
+          <label>top-k <select id="topK"><option value="0">off</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+          <label>top-p <select id="topP"><option value="0">off</option><option>0.5</option><option>0.8</option><option>0.9</option><option>0.95</option></select></label>
+        </div>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="card">
+        <h2>3 · Byte-pair encoding, step by step</h2>
+        <p class="lead">The toy corpus from Part I. Each step merges the most frequent adjacent pair everywhere.</p>
+        <label>merge step <span class="mono" id="bVal"></span> <input type="range" id="bSlider" min="0" max="7" step="1" value="0"></label>
+        <div id="bpe" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="foot"></footer>
+
+<script>
+const DATA = {"cheatsheet":"# Transformers — cheat sheet\n\nOne page covering both decks. **I-n** = Part I (`transformers.md`) slide *n*; **II-n** = Part II\n(`transformers-2.md`) slide *n*; **▶ mm:ss** = Stanford CME 295 lecture 1\n([YouTube](https://www.youtube.com/watch?v=114i2Kz-LZA)), approximate times from\n[the organized notes](../Stanford_CME295_Transformers_LLMs_Organized_Notes.md).\nEvery number below comes from `scripts/verify-attention.py`.\n\n---\n\n## The pipeline\n\n```\ntext → tokens → embeddings + position → [ attention → feed-forward ] × N → logits → softmax → next token\n                                          (each wrapped in residual + LayerNorm)        └── loop until <EOS>\n```\n\nEncoder–decoder (2017 original, II-2): the **encoder** reads the source with unmasked self-attention;\nthe **decoder** writes with masked self-attention, then **cross-attention** to the encoder output, then FFN.\nGPT-style models are the decoder alone (I-81).\n\n## Formulas\n\n| What | Formula | Where |\n|---|---|---|\n| Model input | `X = TokenEmbedding + PositionEncoding` | I-22, II-15 · ▶ 1:13 |\n| Projections | `Q = X·W_Q   K = X·W_K   V = X·W_V` | I-37 · ▶ 1:00 |\n| Scaled dot-product attention | `Attention(Q,K,V) = softmax(Q·Kᵀ / √d_k) · V` | I-44 · ▶ 1:03 |\n| Multi-head | `MultiHead = Concat(head_1 … head_h) · W_O`, `head_i = Attention(Q_i, K_i, V_i)`, `d_k = d_model / h` | I-45, II-18–19 |\n| Causal mask | future scores → `−∞` before softmax, so `e^−∞ = 0` and rows still sum to 1 | I-68–69, II-29 |\n| Sinusoidal position | `PE(pos,2i) = sin(pos / 10000^(2i/d))`, `PE(pos,2i+1) = cos(…)` | II-12 · ▶ 1:15 |\n| Residual | `out = x + Sublayer(x)` | I-66, II-41 · ▶ 1:23 |\n| LayerNorm | `(x − mean) / std`, then learned scale γ and shift β | I-67, II-41 |\n| Add & Norm (2017, post-norm) | `LayerNorm(x + Sublayer(x))` | II-22 |\n| Feed-forward | `FFN(x) = max(0, x·W₁ + b₁)·W₂ + b₂`, width `d_model → 4·d_model → d_model` | I-65, II-24 |\n| Output | `P(token | context) = softmax(h · W_vocab)` | I-48–49, II-32 |\n| Temperature | `softmax(z / T)`; `T → 0` is greedy (argmax) | I-56–57 |\n| Loss | `L = −log P(correct token)` | I-72 |\n| Label smoothing (ε = 0.1, paper) | target: correct `1 − ε = 0.9`, each other `ε/(K−1)` | II-43 · ▶ 1:26 |\n\n## The worked examples (memorise one)\n\n- **Attention (I-36–42):** tokens *glass, dropped, it*; `d_model = 4`, `d_k = 2`.\n  `q_it · k_glass = (3)(1) + (−1)(−1) = 4` → `÷ √2 = 2.83` → softmax → **0.85**. Output for *it* ≈ `[0.90, 1.10]` ≈ `v_glass = [1, 1]`.\n- **Second head (II-17):** different W's send every token to *dropped* (0.80 / 0.62 / 0.80).\n- **Cross-attention (II-31):** decoder *“&lt;BOS&gt; le”* over encoder *“the cat sleeps”*: *le* puts **0.77** on *cat*. Score grid is 2 × 3 — not square.\n- **BPE (I-7):** corpus `read×4 reading×3 bear×4 bears×2 ring×2 sing×3`; merges `ea, in, ing, ead, read, bea, bear`. Unseen *bearing* → `bear|ing`.\n- **LayerNorm (I-67):** `[20, 40, 40, 100]` → mean 50, std 30 → `[−1.00, −0.33, −0.33, 1.67]`.\n- **Decoding (I-49–60):** logits `blue 3.9, clear 1.8, dark 1.1, green 0.6, red 0.2` → P(blue) = 0.80. Top-k = 3 keeps 3; top-p = 0.9 keeps 2.\n\n## Base Transformer (2017) — shapes measured by a forward pass (II-35–38)\n\n`d_model 512 · h 8 · d_k 64 · d_ff 2048 · N 6 · vocab 37,000` · source 7 tokens, target 7 + `<BOS>` = 8 positions.\n\n| Tensor | Shape |\n|---|---|\n| encoder input / every encoder layer output | 7 × 512 |\n| Q or K of one head (encoder) | 7 × 64 |\n| encoder self-attention scores | 8 heads × 7 × 7 |\n| FFN hidden | 7 × 2048 |\n| decoder input / every decoder layer output | 8 × 512 |\n| masked self-attention scores | 8 × 8 × 8 |\n| **cross-attention scores** (Q from decoder, K from encoder) | **8 × 8 × 7** |\n| logits / probabilities | 8 × 37,000 (inference uses the last row) |\n\n**Parameters** (II-47): 63.1M by our count (paper: 65M) — FFN 40%, shared embeddings 30%, attention 30%, LayerNorm ≈ 0.\n\n## Tokenization facts (I-5–13 · ▶ 16:59–37:26)\n\n| Tokenizer | Vocabulary | “The teddy bears were reading” | Problem |\n|---|---|---|---|\n| word | 100,000s+ | 5 tokens | OOV → `<UNK>`, *bear* ≠ *bears* |\n| character | a few hundred | 28 tokens | long sequences, attention cost ∝ n² |\n| subword (BPE) | 50,257 (GPT-2) / 100,277 (GPT-4) | 6 tokens (`ted|dy`) | learned from data; language bias |\n\nSpecial tokens (I-13): `<BOS>` start · `<EOS>` stop · `<PAD>` filler (masked) · `<UNK>` unknown. GPT-2's `<|endoftext|>` = id 50256. Conventions differ per model.\n\n## Problem → fix ladder (II-50)\n\n| Problem | Fix |\n|---|---|\n| text isn't numbers | tokenization |\n| huge vocab / unknown words | subwords (BPE) |\n| one-hot says nothing about similarity (I-17) | learned embeddings (Word2Vec proxy task, I-19 · ▶ 39:35) |\n| one vector per word ignores context (I-23) | contextual models |\n| RNN: fades over distance, queues, one-vector bottleneck (I-27, II-5–7 · ▶ 48:21) | LSTM, then attention (2014, II-8) |\n| sequential = slow | self-attention only (2017) |\n| attention ignores order | positional encoding |\n| one relation per head | multi-head + W_O |\n| deep stacks won't train | residual + LayerNorm |\n| decoder could see the answer | causal mask |\n| decoder must read the source | cross-attention |\n| over-confident on one phrasing | label smoothing |\n\n## Glossary\n\n- **Token** — a chunk of text with an integer id. **Vocabulary** — the set of all tokens.\n- **Embedding** — the learned vector for a token. **One-hot** — all zeros except one 1; orthogonal, so no similarity.\n- **Proxy task** — a made-up training task whose by-product (e.g. Word2Vec's middle layer) is the real goal. **CBOW**: context → word. **Skip-gram**: word → context.\n- **Hidden state / cell state** — an RNN's running memory / an LSTM's protected memory lane.\n- **Vanishing gradient** — training signal shrinking as it passes back through many steps (0.5¹⁰ ≈ 0.001, II-6).\n- **Self-attention** — Q, K, V from the same sequence. **Cross-attention** — Q from one sequence, K and V from another.\n- **Head** — one attention computation with its own W_Q, W_K, W_V. **W_O** — mixes concatenated heads back to d_model.\n- **Causal / masked attention** — no looking at later positions. **Teacher forcing** — training the decoder on the true target, shifted right behind `<BOS>`.\n- **Logits** — raw scores, one per vocabulary entry. **Softmax** — `eˣ / Σeˣ`; used for attention weights *and* the output distribution (II-48).\n- **Greedy / argmax** — always take the top token. **Sampling** — draw from the distribution (temperature, top-k, top-p).\n- **Residual** — add the input back. **LayerNorm** — re-centre and re-scale each vector. **Dropout** — zero 10% of units at random during training.\n- **Label smoothing** — train towards 0.9 / spread rather than 1 / 0. Lower confidence, better BLEU.\n- **Encoder-only** (BERT) · **decoder-only** (GPT) · **encoder–decoder** (2017, T5) (II-49).\n","cards":[{"group":"History and motivation","level":"Core","q":"Before 2017, how were different language tasks usually handled?","a":"One model per task — a separate translator, sentiment classifier, name-finder — typically recurrent networks (RNNs). *(I-3)*"},{"group":"History and motivation","level":"Core","q":"What was the key property that made the 2017 Transformer take over?","a":"It scaled: more data, more compute and more parameters kept making it better, and it trains in parallel instead of one word at a time. *(I-3, I-75)*"},{"group":"History and motivation","level":"Deeper","q":"What is the difference between \"a Transformer\" and \"an LLM\"?","a":"The Transformer is the architecture. An LLM is that architecture built at very large size and trained on a very large amount of text. *(I-79)*"},{"group":"Tokenization","level":"Core","q":"Why does a model need tokenization at all?","a":"Neural networks operate on numbers. Tokenization cuts text into pieces (tokens), each with an integer id, which then become vectors. *(I-5)*"},{"group":"Tokenization","level":"Core","q":"What trade-off does every tokenizer make?","a":"Vocabulary size against sequence length: more distinct pieces means fewer tokens per sentence, and vice versa. *(I-6)*"},{"group":"Tokenization","level":"Core","q":"Two problems with word-level tokenization?","a":"A huge vocabulary in which related forms (bear / bears) are unrelated entries, and out-of-vocabulary words that become `<UNK>`. *(I-6)*"},{"group":"Tokenization","level":"Core","q":"Main cost of character-level tokenization?","a":"Very long sequences (\"The teddy bears were reading\" = 28 tokens vs 5 words), and attention's work grows with the square of the length. *(I-6)*"},{"group":"Tokenization","level":"Core","q":"Describe byte-pair encoding in one sentence.","a":"Start from single characters (or bytes), repeatedly merge the most frequent adjacent pair into a new token, until the vocabulary is the desired size. *(I-7)*"},{"group":"Tokenization","level":"Core","q":"In the toy corpus, what are the first three BPE merges?","a":"`e+a → ea` (13 times), `i+n → in` (8), `in+g → ing` (8). *(I-7)*"},{"group":"Tokenization","level":"Core","q":"How does BPE handle a word it never saw, like \"bearing\"?","a":"Replay the learned merges in order: `bear|ing`. In the worst case it falls back to single characters, so `<UNK>` is almost never needed. *(I-7)*"},{"group":"Tokenization","level":"Core","q":"Why does the same greeting cost 4 tokens in English and 14 in Korean (GPT-2)?","a":"The tokenizer's merges reflect its training data, which was mostly English; under-represented languages are left in small, byte-level pieces. *(I-10)*"},{"group":"Tokenization","level":"Core","q":"What are `<BOS>`, `<EOS>`, `<PAD>` and `<UNK>` for?","a":"Begin a sequence; end it (generation stops when the model picks it); pad a batch to equal length (masked out); stand for something unknown. Names vary by model. *(I-13)*"},{"group":"Tokenization","level":"Deeper","q":"How big is GPT-2's vocabulary and where does the number come from?","a":"50,257 = 256 bytes + 50,000 merges + 1 special token (`<|endoftext|>`, id 50256). *(I-13)*"},{"group":"Embeddings","level":"Core","q":"Why are raw token ids a bad representation?","a":"They impose an arbitrary order: id distance says nothing about meaning. *(I-16)*"},{"group":"Embeddings","level":"Core","q":"What is wrong with one-hot vectors?","a":"Every pair is orthogonal — equally different — so they can never express similarity, and each one is as long as the vocabulary. *(I-17)*"},{"group":"Embeddings","level":"Core","q":"What is an embedding?","a":"A short, dense, learned vector per token, arranged so that tokens used in similar ways end up close together. *(I-16, I-18)*"},{"group":"Embeddings","level":"Core","q":"What is a proxy task? Give the Word2Vec example.","a":"A made-up training task whose by-product is what you actually want. Word2Vec predicts words from neighbours; the hidden layer it learns is the embedding. *(I-19)*"},{"group":"Embeddings","level":"Deeper","q":"CBOW vs skip-gram?","a":"CBOW predicts the middle word from its context; skip-gram predicts the context words from the middle word. *(I-19)*"},{"group":"Embeddings","level":"Core","q":"Three limits of static (Word2Vec-style) embeddings?","a":"One vector per word regardless of context (river bank vs money bank), no notion of word order, and no vector for unseen words. *(I-21, I-23)*"},{"group":"Embeddings","level":"Core","q":"How does the model know word order?","a":"A position vector is added to each token embedding before the first layer. *(I-22)*"},{"group":"Before attention: RNNs and LSTMs","level":"Core","q":"How does an RNN process a sentence?","a":"One word at a time, updating a single hidden state that carries everything seen so far. *(I-27)*"},{"group":"Before attention: RNNs and LSTMs","level":"Core","q":"Two main weaknesses of RNNs?","a":"Information from far back fades (long-range dependency / vanishing gradients), and processing is sequential, so it cannot be parallelised. *(I-27)*"},{"group":"Before attention: RNNs and LSTMs","level":"Deeper","q":"What is the vanishing-gradient problem?","a":"The training signal is multiplied by roughly the same factor at each step back; below 1 it shrinks geometrically (0.5¹⁰ ≈ 0.001), so distant words stop teaching anything. *(II-6)*"},{"group":"Before attention: RNNs and LSTMs","level":"Deeper","q":"What does an LSTM add to an RNN?","a":"A cell state — a memory lane updated by addition — controlled by forget, input and output gates. It eases vanishing gradients but stays sequential. *(II-7)*"},{"group":"Before attention: RNNs and LSTMs","level":"Deeper","q":"What was the seq2seq bottleneck?","a":"The whole source sentence had to be squeezed into one fixed-size vector before the decoder began; long sentences lost detail. *(II-5)*"},{"group":"Before attention: RNNs and LSTMs","level":"Deeper","q":"What did attention (2014) change in RNN translators?","a":"The decoder kept every encoder state and, for each output word, took a learned weighted blend of them — no single-vector bottleneck. *(II-8)*"},{"group":"Attention","level":"Core","q":"What do query, key and value represent?","a":"Query: what this word is looking for. Key: what a word advertises so others can find it. Value: what a word passes on if attended to. *(I-33)*"},{"group":"Attention","level":"Core","q":"Write the scaled dot-product attention formula.","a":"`Attention(Q,K,V) = softmax(Q·Kᵀ / √d_k) · V` *(I-44)*"},{"group":"Attention","level":"Core","q":"In the worked example, what is q_it · k_glass, and what weight does it become?","a":"(3)(1) + (−1)(−1) = 4; ÷ √2 = 2.83; after softmax over the row, **0.85**. *(I-38–41)*"},{"group":"Attention","level":"Core","q":"Why divide by √d_k?","a":"Dot products grow with dimension; large scores saturate softmax into a near one-hot. Scaling keeps it soft. *(I-39)*"},{"group":"Attention","level":"Core","q":"What shape is Q·Kᵀ for n tokens, and how do you read it?","a":"n × n. Row = the word asking, column = the word being asked; each row becomes a distribution after softmax. *(I-38)*"},{"group":"Attention","level":"Core","q":"What is the output of attention, in words?","a":"For each word, a weighted average of all value vectors, with weights the model computed itself. *(I-42–43)*"},{"group":"Attention","level":"Core","q":"Why is it called *self*-attention?","a":"Queries, keys and values all come from the same sequence. *(I-44)*"},{"group":"Attention","level":"Core","q":"Why use multiple heads?","a":"Each head has its own W_Q, W_K, W_V and can learn a different relationship (pronoun → noun, subject → verb …). *(I-45, II-17)*"},{"group":"Attention","level":"Deeper","q":"How is d_k chosen in multi-head attention, and what does that do to cost?","a":"d_k = d_model / h (512/8 = 64 in the base model), so all heads together cost about the same as one full-width head. *(II-18)*"},{"group":"Attention","level":"Deeper","q":"What is W_O?","a":"The learned output projection: concatenated head outputs (n × h·d_k) × W_O → back to n × d_model. *(II-19)*"},{"group":"Attention","level":"Deeper","q":"What analogy does CME 295 use for multi-head attention?","a":"Multiple filters in a convolutional network — each detects a different pattern. *(II-19)*"},{"group":"Generation and decoding","level":"Core","q":"What does the model output at each step?","a":"A score (logit) for every vocabulary token, turned into probabilities by softmax. *(I-48–49)*"},{"group":"Generation and decoding","level":"Core","q":"How does generation proceed, and when does it stop?","a":"Autoregressively: pick a token, append it, run again — until the picked token is `<EOS>` or a length limit is hit. *(I-50)*"},{"group":"Generation and decoding","level":"Core","q":"What is greedy decoding?","a":"Always take the argmax (highest-probability token). Predictable but flat and repetitive. *(I-55)*"},{"group":"Generation and decoding","level":"Core","q":"What does temperature do?","a":"Divides logits by T before softmax: T < 1 sharpens, T > 1 flattens, T → 0 becomes greedy. It does not change the model. *(I-56–57)*"},{"group":"Generation and decoding","level":"Core","q":"Top-k vs top-p?","a":"Top-k keeps a fixed number of tokens; top-p keeps the smallest set covering probability p, so it adapts to the distribution's shape. *(I-58–60)*"},{"group":"Generation and decoding","level":"Core","q":"Name the two different jobs softmax does in a Transformer.","a":"Inside attention: weights over keys. At the output: a distribution over the vocabulary. *(I-48, II-48)*"},{"group":"The block and training","level":"Core","q":"What are the two main sub-layers of a block?","a":"Attention (tokens communicate) and the feed-forward network (each token computed on separately). *(I-65)*"},{"group":"The block and training","level":"Core","q":"What does the feed-forward network do to the vector's width?","a":"Widens it about 4× (512 → 2048), applies ReLU, and projects back. *(I-65, II-24)*"},{"group":"The block and training","level":"Core","q":"What is a residual connection and why does it help?","a":"output = x + Sublayer(x). Each layer learns a change, and gradients flow straight back through the addition, so deep stacks train. *(I-66)*"},{"group":"The block and training","level":"Core","q":"What does LayerNorm do to [20, 40, 40, 100]?","a":"Mean 50, std 30 → [−1.00, −0.33, −0.33, 1.67], then a learned scale and shift. *(I-67)*"},{"group":"The block and training","level":"Core","q":"How does a causal mask work, and why −∞ rather than 0?","a":"Future scores are set to −∞ before softmax so they become exactly 0; setting them to 0 would still give them weight because e⁰ = 1. *(I-68–69)*"},{"group":"The block and training","level":"Core","q":"What loss trains a language model?","a":"Cross-entropy: −log P(correct next token), averaged over positions. *(I-72)*"},{"group":"The block and training","level":"Deeper","q":"Post-norm vs pre-norm?","a":"2017: LayerNorm(x + Sublayer(x)). Modern: x + Sublayer(LayerNorm(x)), which is more stable for very deep models. *(II-41)*"},{"group":"The block and training","level":"Deeper","q":"What is dropout, and what rate did the base model use?","a":"Randomly zeroing units during training (not at inference) to prevent over-reliance on any unit; p = 0.1. *(II-42)*"},{"group":"The block and training","level":"Deeper","q":"What is label smoothing (ε = 0.1)?","a":"Train towards a softened target — 0.9 on the correct token, 0.1 shared among the rest — instead of 1 / 0. *(II-43)*"},{"group":"The block and training","level":"Deeper","q":"Why does label smoothing help translation?","a":"Many outputs are valid; demanding 100% on one makes the model over-confident. It worsened perplexity but improved BLEU in the 2017 paper. *(II-44)*"},{"group":"Positions, properly","level":"Deeper","q":"Learned vs sinusoidal positional encodings?","a":"Learned: a trained vector per position, flexible but no row past the maximum length. Sinusoidal: fixed sin/cos formula, nothing learned, defined for any position. *(II-11–12)*"},{"group":"Positions, properly","level":"Deeper","q":"Explain the clock analogy for sinusoidal encodings.","a":"Each sin/cos pair is a clock hand turning at a different speed; fast hands distinguish neighbours, slow hands distinguish distant positions; together they identify the position uniquely. *(II-12–13)*"},{"group":"Positions, properly","level":"Deeper","q":"What useful property do sinusoidal encodings have?","a":"Nearby positions have similar vectors (d=512: distance 1 → 0.97, distance 20 → 0.62), and a shift by k is the same rotation for every position. *(II-14)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"What does the encoder produce?","a":"One context-aware d_model vector per source token, after N = 6 blocks of unmasked self-attention + FFN with Add & Norm. *(II-22–25)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"Why does the encoder not use a mask?","a":"It is not generating — the whole source is given — so every word may attend to words before and after it. *(II-23)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"List the three sub-layers of a decoder block in order.","a":"Masked self-attention → cross-attention → feed-forward, each with Add & Norm. *(II-33)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"In cross-attention, where do Q, K and V come from?","a":"Q from the decoder; K and V from the encoder output. *(II-30)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"Shape of the cross-attention score matrix for 8 decoder positions and 7 source tokens?","a":"8 × 7 per head (8 × 8 × 7 for 8 heads) — rectangular, not square. *(II-37)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"What is teacher forcing?","a":"During training the decoder receives the true target shifted right behind `<BOS>`, and predicts every next token in parallel under the causal mask. *(II-29, II-38)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"Base model hyper-parameters?","a":"d_model 512, h 8, d_k 64, d_ff 2048, N 6, vocab 37,000 — about 63–65M parameters. *(II-35, II-47)*"},{"group":"Encoder, decoder, cross-attention","level":"Deeper","q":"Encoder-only, decoder-only, encoder–decoder: one example each?","a":"BERT; GPT (and most chat models); the 2017 translator / T5. *(II-49)*"}],"quiz":[{"id":1,"kind":"MC","prompt":"Which tokenizer gives the *shortest* sequence for ordinary English text?","options":[{"key":"A","text":"Character-level"},{"key":"B","text":"Byte-level with no merges"},{"key":"C","text":"Word-level"},{"key":"D","text":"All three give the same length"}],"correct":"C","explain":"Word-level: one token per word (\"The teddy bears were reading\" = 5, vs 6 subword, 28 characters). *(I-6)*"},{"id":2,"kind":"MC","prompt":"The main reason modern models use subword tokenization is that it…","options":[{"key":"A","text":"Matches how linguists split words into morphemes"},{"key":"B","text":"Balances vocabulary size against sequence length and avoids unknown words"},{"key":"C","text":"Makes every word exactly one token"},{"key":"D","text":"Removes the need for embeddings"}],"correct":"B","explain":"Subwords sit between words and characters, and can always fall back to smaller pieces. The cuts are statistical, not linguistic (`ted|dy`). *(I-6)*"},{"id":3,"kind":"compute","prompt":"BPE corpus: `read×4, reading×3, bear×4, bears×2, ring×2, sing×3`. Starting from single letters, which adjacent pair is merged first, and how many times does it occur?","answer":"`e + a`, 13 times","explain":"read(4) + reading(3) + bear(4) + bears(2) = 13. *(I-7)*"},{"id":4,"kind":"MC","prompt":"After seven merges, how does the tokenizer split the unseen word *rings*?","options":[{"key":"A","text":"`<UNK>`"},{"key":"B","text":"`rings`"},{"key":"C","text":"`r | ing | s`"},{"key":"D","text":"`ri | ngs`"}],"correct":"C","explain":"Replaying the merges gives `r | ing | s`; no `<UNK>` needed. *(I-7)*"},{"id":5,"kind":"MC","prompt":"Which special token tells a model that generation is finished?","options":[{"key":"A","text":"`<BOS>`"},{"key":"B","text":"`<PAD>`"},{"key":"C","text":"`<UNK>`"},{"key":"D","text":"`<EOS>`"}],"correct":"D","explain":"`<EOS>` — generation stops when the model picks it. *(I-13, I-50)*"},{"id":6,"kind":"MC","prompt":"Why are one-hot vectors poor word representations?","options":[{"key":"A","text":"They are too short"},{"key":"B","text":"Every pair of them is orthogonal, so they cannot express similarity"},{"key":"C","text":"They change during training"},{"key":"D","text":"They depend on word order"}],"correct":"B","explain":"No two one-hot rows share a 1, so every pair is equally different. *(I-17)*"},{"id":7,"kind":"MC","prompt":"In Word2Vec, which part of the trained network becomes the word embedding?","options":[{"key":"A","text":"The softmax output"},{"key":"B","text":"The input one-hot vector"},{"key":"C","text":"The hidden (middle) layer"},{"key":"D","text":"The loss value"}],"correct":"C","explain":"The predictions are thrown away; the hidden layer is kept. *(I-19)*"},{"id":8,"kind":"MC","prompt":"\"She sat on the river bank\" / \"She paid money into the bank\". What does a static embedding table give *bank*?","options":[{"key":"A","text":"Two different vectors, chosen by context"},{"key":"B","text":"The same vector both times"},{"key":"C","text":"No vector — it is ambiguous"},{"key":"D","text":"A vector equal to *river* + *money*"}],"correct":"B","explain":"One row per token, looked up identically; context must be added by later layers. *(I-23)*"},{"id":9,"kind":"MC","prompt":"Which is **not** a limitation of a plain RNN?","options":[{"key":"A","text":"Early information fades over long sequences"},{"key":"B","text":"Steps must be computed one after another"},{"key":"C","text":"It cannot handle sequences of different lengths"},{"key":"D","text":"The training signal can vanish as it travels back through steps"}],"correct":"C","explain":"RNNs handle variable lengths naturally; their problems are fading memory, sequential computation and vanishing gradients. *(I-27, II-6)*"},{"id":10,"kind":"compute","prompt":"A training signal is multiplied by 0.5 at each step back through an RNN. Roughly what fraction remains after 10 steps?","answer":"about 0.001 (0.5¹⁰ ≈ 0.00098)","explain":"A thousandth of the original signal. *(II-6)*"},{"id":11,"kind":"MC","prompt":"What did attention, as added to RNN translators in 2014, remove?","options":[{"key":"A","text":"The need for a vocabulary"},{"key":"B","text":"The single fixed-size vector between encoder and decoder"},{"key":"C","text":"The decoder"},{"key":"D","text":"Training altogether"}],"correct":"B","explain":"The decoder could look back at every encoder state instead of one summary vector. *(II-8)*"},{"id":12,"kind":"compute","prompt":"Worked example: `q_it = [3, −1]`, `k_glass = [1, −1]`, `d_k = 2`. Compute the scaled score q·k / √d_k.","answer":"4 / √2 ≈ 2.83","explain":"(3)(1) + (−1)(−1) = 4. *(I-38–39)*"},{"id":13,"kind":"MC","prompt":"Dividing scores by √d_k mainly prevents…","options":[{"key":"A","text":"Negative scores"},{"key":"B","text":"Softmax saturating into a near one-hot distribution"},{"key":"C","text":"Rows summing to more than 1"},{"key":"D","text":"The model attending to itself"}],"correct":"B","explain":"Large scores push softmax towards one-hot; scaling keeps it soft. *(I-39)*"},{"id":14,"kind":"MC","prompt":"For a sequence of n tokens, what is the shape of Q·Kᵀ in self-attention?","options":[{"key":"A","text":"n × d_k"},{"key":"B","text":"d_k × d_k"},{"key":"C","text":"n × n"},{"key":"D","text":"1 × n"}],"correct":"C","explain":"Every token's query against every token's key. *(I-38)*"},{"id":15,"kind":"MC","prompt":"In the worked example, \"it\" puts 0.85 of its attention on \"glass\". Its output vector is therefore close to…","options":[{"key":"A","text":"q_glass"},{"key":"B","text":"k_glass"},{"key":"C","text":"v_glass"},{"key":"D","text":"The average of all three value vectors"}],"correct":"C","explain":"The output is a weighted average of value vectors: `[0.90, 1.10]` ≈ `v_glass = [1, 1]`. *(I-42)*"},{"id":16,"kind":"compute","prompt":"A model has d_model = 512 and h = 8 heads. What is d_k per head, and what is √d_k?","answer":"d_k = 64, √d_k = 8","explain":"512 / 8 = 64. *(II-18)*"},{"id":17,"kind":"MC","prompt":"What does W_O do in multi-head attention?","options":[{"key":"A","text":"Masks the future"},{"key":"B","text":"Mixes the concatenated head outputs back into d_model"},{"key":"C","text":"Converts logits to probabilities"},{"key":"D","text":"Adds positional information"}],"correct":"B","explain":"Concat(head₁…head_h) · W_O returns to n × d_model. *(II-19)*"},{"id":18,"kind":"MC","prompt":"In a causal mask, why are future positions set to −∞ rather than 0 before softmax?","options":[{"key":"A","text":"0 would still receive weight because e⁰ = 1"},{"key":"B","text":"−∞ makes training faster"},{"key":"C","text":"0 would make the row sum to 0"},{"key":"D","text":"There is no difference"}],"correct":"A","explain":"e⁰ = 1, so a zero score still takes a share; e^−∞ = 0 removes it and the row still sums to 1. *(I-68)*"},{"id":19,"kind":"MC","prompt":"Temperature T → 0 is equivalent to…","options":[{"key":"A","text":"Uniform random sampling"},{"key":"B","text":"Top-p with p = 1"},{"key":"C","text":"Greedy (argmax) decoding"},{"key":"D","text":"Turning off the model"}],"correct":"C","explain":"The distribution collapses onto the highest logit. *(I-56)*"},{"id":20,"kind":"MC","prompt":"Logits `blue 3.9, clear 1.8, dark 1.1, green 0.6, red 0.2` give P(blue) ≈ 0.80. With **top-p = 0.9**, how many tokens are kept?","options":[{"key":"A","text":"1"},{"key":"B","text":"2"},{"key":"C","text":"3"},{"key":"D","text":"5"}],"correct":"B","explain":"Cumulative: blue 0.80, + clear 0.10 = 0.90 ≥ 0.9 → 2 tokens. *(I-59)*"},{"id":21,"kind":"compute","prompt":"LayerNorm (γ = 1, β = 0) on `[20, 40, 40, 100]`. Give the mean, the standard deviation, and the normalised last entry.","answer":"mean 50, std 30, last entry 1.67","explain":"(100 − 50) / 30 = 1.67; full vector `[−1.00, −0.33, −0.33, 1.67]`. *(I-67)*"},{"id":22,"kind":"MC","prompt":"In the feed-forward network of the base Transformer, the hidden width is…","options":[{"key":"A","text":"64"},{"key":"B","text":"512"},{"key":"C","text":"2048"},{"key":"D","text":"37,000"}],"correct":"C","explain":"d_ff = 2048 = 4 × 512. *(II-24)*"},{"id":23,"kind":"MC","prompt":"Why does the encoder use **unmasked** self-attention?","options":[{"key":"A","text":"It is cheaper"},{"key":"B","text":"It reads a given source and generates nothing, so there is no future to hide"},{"key":"C","text":"Masks only work with cross-attention"},{"key":"D","text":"It has no positional encoding"}],"correct":"B","explain":"Masking exists to stop next-token cheating; the encoder is reading, not predicting. *(II-23)*"},{"id":24,"kind":"MC","prompt":"In cross-attention, the queries come from ___ and the keys/values from ___.","options":[{"key":"A","text":"the encoder; the decoder"},{"key":"B","text":"the decoder; the encoder"},{"key":"C","text":"the decoder; the decoder"},{"key":"D","text":"the vocabulary; the encoder"}],"correct":"B","explain":"Decoder asks, encoder answers. *(II-30)*"},{"id":25,"kind":"compute","prompt":"Base model, 7 source tokens, 8 decoder positions, 8 heads. What is the shape of the cross-attention score tensor?","answer":"8 × 8 × 7","explain":"(heads × decoder positions × source tokens). *(II-37)*"},{"id":26,"kind":"MC","prompt":"Which property of sinusoidal positional encodings is **true**?","options":[{"key":"A","text":"They must be learned during training"},{"key":"B","text":"They stop at a maximum position"},{"key":"C","text":"Nearby positions get similar vectors"},{"key":"D","text":"All dimensions oscillate at the same frequency"}],"correct":"C","explain":"At d = 512, distance 1 → similarity 0.97, distance 20 → 0.62. They are fixed (not learned), defined for every position, and each pair has its own frequency. *(II-12–14)*"},{"id":27,"kind":"compute","prompt":"Label smoothing, paper variant, ε = 0.1, K = 5 tokens. What target probability goes to the correct token, and to each of the others?","answer":"0.9 to the correct token, 0.025 to each of the other four","explain":"(PyTorch's variant spreads ε over all K: 0.92 / 0.02.) *(II-43)*"},{"id":28,"kind":"MC","prompt":"Which component holds the largest share of the base Transformer's parameters?","options":[{"key":"A","text":"LayerNorm"},{"key":"B","text":"Attention projections"},{"key":"C","text":"Feed-forward networks"},{"key":"D","text":"Positional encodings"}],"correct":"C","explain":"FFN ≈ 40% (25.2M of 63.1M); embeddings and attention ≈ 30% each. *(II-47)*"},{"id":29,"kind":"MC","prompt":"GPT-style chat models are…","options":[{"key":"A","text":"Encoder-only"},{"key":"B","text":"Decoder-only"},{"key":"C","text":"Encoder–decoder"},{"key":"D","text":"Recurrent"}],"correct":"B","explain":"Decoder-only: prompt and answer are one stream. *(II-49)*"},{"id":30,"kind":"MC","prompt":"During training with teacher forcing, the decoder's input is…","options":[{"key":"A","text":"Its own previous predictions"},{"key":"B","text":"The true target sequence shifted right behind `<BOS>`"},{"key":"C","text":"The source sentence"},{"key":"D","text":"Random tokens"}],"correct":"B","explain":"The true target, shifted right, with the causal mask keeping it honest. *(II-29)*"}],"numbers":{"worked":{"tokens":["glass","dropped","it"],"dModel":4,"dK":2,"sqrtDK":1.4142,"x":[[0,2,0,1],[1,0,1,0],[2,0,2,1]],"wQ":[[1,-1],[0,0],[1,0],[-1,1]],"wK":[[0,0],[1,0],[0,-1],[-1,-1]],"wV":[[0,0],[0,0],[0,1],[1,1]],"q":[[-1,1],[2,-1],[3,-1]],"k":[[1,-1],[0,-1],[-1,-3]],"v":[[1,1],[0,1],[1,3]],"scores":[[-2,-1,-2],[3,1,1],[4,1,0]],"scaled":[[-1.4142,-0.7071,-1.4142],[2.1213,0.7071,0.7071],[2.8284,0.7071,0]],"weights":[[0.2483,0.5035,0.2483],[0.6728,0.1636,0.1636],[0.8482,0.1017,0.0501]],"output":[[0.4965,1.4965],[0.8364,1.3272],[0.8983,1.1003]],"causalWeights":[[1,0,0],[0.8044,0.1956,0],[0.8482,0.1017,0.0501]],"causalOutput":[[1,1],[0.8044,1],[0.8983,1.1003]],"headline":{"query":"it","key":"glass","weight":0.8482}},"decode":{"tokens":["blue","clear","dark","green","red"],"logits":[3.9,1.8,1.1,0.6,0.2],"byTemperature":{"0.2":[1,0,0,0,0],"0.5":[0.9798,0.0147,0.0036,0.0013,0.0006],"1.0":[0.8033,0.0984,0.0488,0.0296,0.0199],"1.5":[0.6262,0.1544,0.0968,0.0694,0.0531],"2.0":[0.5139,0.1798,0.1267,0.0987,0.0808]},"topK":{"k":3,"kept":["blue","clear","dark"],"renormalised":[0.8451,0.1035,0.0514]},"topP":{"p":0.9,"cumulative":[0.8033,0.9017,0.9505,0.9801,1],"keptCount":2,"kept":["blue","clear"],"mass":0.9017}},"bpe":{"corpus":{"read":4,"reading":3,"bear":4,"bears":2,"ring":2,"sing":3},"steps":[{"pair":["e","a"],"merged":"ea","count":13,"top":[["ea",13],["in",8],["ng",8],["ad",7]],"words":{"read":["r","ea","d"],"reading":["r","ea","d","i","n","g"],"bear":["b","ea","r"],"bears":["b","ea","r","s"],"ring":["r","i","n","g"],"sing":["s","i","n","g"]}},{"pair":["i","n"],"merged":"in","count":8,"top":[["in",8],["ng",8],["ead",7],["rea",7]],"words":{"read":["r","ea","d"],"reading":["r","ea","d","in","g"],"bear":["b","ea","r"],"bears":["b","ea","r","s"],"ring":["r","in","g"],"sing":["s","in","g"]}},{"pair":["in","g"],"merged":"ing","count":8,"top":[["ing",8],["ead",7],["rea",7],["bea",6]],"words":{"read":["r","ea","d"],"reading":["r","ea","d","ing"],"bear":["b","ea","r"],"bears":["b","ea","r","s"],"ring":["r","ing"],"sing":["s","ing"]}},{"pair":["ea","d"],"merged":"ead","count":7,"top":[["ead",7],["rea",7],["bea",6],["ear",6]],"words":{"read":["r","ead"],"reading":["r","ead","ing"],"bear":["b","ea","r"],"bears":["b","ea","r","s"],"ring":["r","ing"],"sing":["s","ing"]}},{"pair":["r","ead"],"merged":"read","count":7,"top":[["read",7],["bea",6],["ear",6],["eading",3]],"words":{"read":["read"],"reading":["read","ing"],"bear":["b","ea","r"],"bears":["b","ea","r","s"],"ring":["r","ing"],"sing":["s","ing"]}},{"pair":["b","ea"],"merged":"bea","count":6,"top":[["bea",6],["ear",6],["reading",3],["sing",3]],"words":{"read":["read"],"reading":["read","ing"],"bear":["bea","r"],"bears":["bea","r","s"],"ring":["r","ing"],"sing":["s","ing"]}},{"pair":["bea","r"],"merged":"bear","count":6,"top":[["bear",6],["reading",3],["sing",3],["ring",2]],"words":{"read":["read"],"reading":["read","ing"],"bear":["bear"],"bears":["bear","s"],"ring":["r","ing"],"sing":["s","ing"]}}],"unseen":{"bearing":["bear","ing"],"rings":["r","ing","s"]}}},"built":"2026-10-05"};
+
+// ---------- storage (per-viewer convenience only; page works without it)
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v) } catch { return d } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} },
+};
+
+// ---------- theme
+(function () {
+  const btn = document.getElementById('themeBtn');
+  const apply = t => { if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); btn.textContent = t ? t + ' theme' : 'auto theme'; };
+  let t = store.get('study.theme', '');
+  apply(t);
+  btn.onclick = () => { t = t === '' ? 'light' : t === 'light' ? 'dark' : ''; store.set('study.theme', t); apply(t); };
+})();
+
+// ---------- tiny markdown (headings, fences, tables, lists, hr, paragraphs, inline)
+const esc = s => s.replace(/&(?!#?\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function inline(s) {
+  const codes = [];
+  s = s.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return '\u0000' + (codes.length - 1) + '\u0000'; });
+  s = esc(s)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`);
+  return s.replace(/\u0000(\d+)\u0000/g, (_, i) => '<code>' + esc(codes[+i]) + '</code>');
+}
+function md(src) {
+  const lines = src.replace(/\r/g, '').split('\n');
+  let html = '', i = 0;
+  const cells = l => l.trim().replace(/^\||\|$/g, '').split(/(?<!\\)\|/).map(c => c.trim());
+  while (i < lines.length) {
+    const l = lines[i];
+    if (/^```/.test(l)) { let buf = []; i++; while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]); i++; html += '<pre><code>' + esc(buf.join('\n')) + '</code></pre>'; continue; }
+    const h = l.match(/^(#{1,3}) (.*)$/); if (h) { html += `<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`; i++; continue; }
+    if (/^---+\s*$/.test(l)) { html += '<hr>'; i++; continue; }
+    if (/^\|/.test(l) && i + 1 < lines.length && /^\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      const head = cells(l); i += 2; let rows = '';
+      while (i < lines.length && /^\|/.test(lines[i])) rows += '<tr>' + cells(lines[i++]).map(c => '<td>' + inline(c) + '</td>').join('') + '</tr>';
+      html += '<table><thead><tr>' + head.map(c => '<th>' + inline(c) + '</th>').join('') + '</tr></thead><tbody>' + rows + '</tbody></table>'; continue;
+    }
+    if (/^- /.test(l)) { let items = ''; while (i < lines.length && /^(- |  )/.test(lines[i])) { let t = lines[i++].replace(/^- /, ''); while (i < lines.length && /^  \S/.test(lines[i])) t += ' ' + lines[i++].trim(); items += '<li>' + inline(t) + '</li>'; } html += '<ul>' + items + '</ul>'; continue; }
+    if (!l.trim()) { i++; continue; }
+    let p = [l]; i++;
+    while (i < lines.length && lines[i].trim() && !/^(#{1,3} |```|\||- |---)/.test(lines[i])) p.push(lines[i++]);
+    html += '<p>' + inline(p.join(' ')) + '</p>';
+  }
+  return html;
+}
+
+// ---------- tabs
+const tabs = [...document.querySelectorAll('nav.tabs button')];
+function show(name) {
+  tabs.forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+  ['sheet', 'cards', 'quiz', 'play'].forEach(t => document.getElementById('tab-' + t).hidden = t !== name);
+  store.set('study.tab', name);
+}
+tabs.forEach(b => b.onclick = () => show(b.dataset.tab));
+
+if (!DATA) {
+  document.querySelector('main').innerHTML = '<div class="card">This is the template. Run <code>npm run study</code> and open <code>transformers-study.html</code>.</div>';
+} else {
+  document.getElementById('foot').textContent = `Built ${DATA.built} from docs/study/*.md and composables/useDeckNumbers.ts — edit those, then run npm run study.`;
+  document.getElementById('sheet').innerHTML = md(DATA.cheatsheet);
+  initCards(); initQuiz(); initPlay();
+  show(store.get('study.tab', 'sheet'));
+}
+
+// ---------- flashcards
+function initCards() {
+  const cards = DATA.cards.map((c, i) => ({ ...c, id: i }));
+  const groups = [...new Set(cards.map(c => c.group))];
+  const gSel = document.getElementById('fcGroup'), lSel = document.getElementById('fcLevel'), hideK = document.getElementById('fcHideKnown');
+  gSel.innerHTML = '<option value="">All groups</option>' + groups.map(g => `<option>${esc(g)}</option>`).join('');
+  let known = new Set(store.get('study.known', []));
+  let order = cards.map(c => c.id), pos = 0, flipped = false;
+  const el = document.getElementById('flash'), prog = document.getElementById('fcProg');
+  const deck = () => order.map(i => cards[i]).filter(c => (!gSel.value || c.group === gSel.value) && (!lSel.value || c.level === lSel.value) && !(hideK.checked && known.has(c.id)));
+  function render() {
+    const d = deck();
+    if (!d.length) { el.innerHTML = '<div class="q">No cards here.</div><div class="hint">Change the filters, or untick “hide known”.</div>'; prog.style.width = '0'; return; }
+    pos = Math.max(0, Math.min(pos, d.length - 1));
+    const c = d[pos];
+    el.innerHTML = `<div class="meta"><span class="tag ${c.level}">${c.level}</span><span>${esc(c.group)} · ${pos + 1}/${d.length}${known.has(c.id) ? ' · ✓ known' : ''}</span></div>
+      <div class="q">${inline(c.q)}</div>` + (flipped ? `<div class="a">${inline(c.a)}</div>` : '<div class="hint">click or press space to reveal</div>');
+    const visible = cards.filter(x => (!gSel.value || x.group === gSel.value) && (!lSel.value || x.level === lSel.value));
+    prog.style.width = (100 * visible.filter(x => known.has(x.id)).length / Math.max(visible.length, 1)) + '%';
+  }
+  const go = d => { pos += d; flipped = false; const n = deck().length; if (pos >= n) pos = 0; if (pos < 0) pos = n - 1; render(); };
+  const mark = k => { const c = deck()[pos]; if (!c) return; k ? known.add(c.id) : known.delete(c.id); store.set('study.known', [...known]); if (hideK.checked && k) { flipped = false; render(); } else go(1); };
+  el.onclick = () => { flipped = !flipped; render(); };
+  document.getElementById('fcPrev').onclick = () => go(-1);
+  document.getElementById('fcNext').onclick = () => go(1);
+  document.getElementById('fcKnow').onclick = () => mark(true);
+  document.getElementById('fcAgain').onclick = () => mark(false);
+  document.getElementById('fcShuffle').onclick = () => { for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } pos = 0; flipped = false; render(); };
+  [gSel, lSel, hideK].forEach(x => x.onchange = () => { pos = 0; flipped = false; render(); });
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('tab-cards').hidden || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === ' ') { e.preventDefault(); flipped = !flipped; render(); }
+    else if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1);
+    else if (e.key === 'k') mark(true); else if (e.key === 'a') mark(false);
+  });
+  render();
+}
+
+// ---------- quiz
+function initQuiz() {
+  const list = document.getElementById('qlist');
+  const state = {};
+  document.getElementById('qTotal').textContent = DATA.quiz.length;
+  function tally() {
+    const v = Object.values(state);
+    document.getElementById('qScore').textContent = v.filter(x => x).length;
+    document.getElementById('qDone').textContent = v.length;
+  }
+  function build() {
+    list.innerHTML = '';
+    for (const q of DATA.quiz) {
+      const box = document.createElement('div'); box.className = 'card';
+      box.innerHTML = `<div class="qhead"><span>Q${q.id}</span><span>${q.kind === 'MC' ? 'multiple choice' : 'work it out'}</span></div><div class="qprompt">${inline(q.prompt.replace(/\n/g, ' '))}</div>`;
+      const ex = document.createElement('div'); ex.className = 'explain'; ex.hidden = true;
+      if (q.kind === 'MC') {
+        ex.innerHTML = inline(q.explain);
+        const opts = document.createElement('div'); opts.className = 'opts';
+        for (const o of q.options) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.innerHTML = `<b>${o.key})</b> ${inline(o.text)}`;
+          b.onclick = () => {
+            const right = o.key === q.correct; state[q.id] = right;
+            [...opts.children].forEach((c, i) => { c.disabled = true; if (q.options[i].key === q.correct) c.classList.add('right'); });
+            if (!right) b.classList.add('wrong');
+            ex.hidden = false; tally();
+          };
+          opts.appendChild(b);
+        }
+        box.appendChild(opts);
+      } else {
+        ex.innerHTML = `<b>${inline(q.answer)}</b> ${inline(q.explain)}`;
+        const row = document.createElement('div'); row.className = 'row';
+        const reveal = document.createElement('button'); reveal.type = 'button'; reveal.className = 'btn primary'; reveal.textContent = 'Show answer';
+        const got = document.createElement('button'); got.type = 'button'; got.className = 'btn ok'; got.textContent = 'I got it'; got.hidden = true;
+        const miss = document.createElement('button'); miss.type = 'button'; miss.className = 'btn bad'; miss.textContent = 'I missed it'; miss.hidden = true;
+        reveal.onclick = () => { ex.hidden = false; reveal.hidden = true; got.hidden = miss.hidden = false; };
+        const self = v => { state[q.id] = v; got.disabled = miss.disabled = true; (v ? got : miss).textContent += ' ✓'; tally(); };
+        got.onclick = () => self(true); miss.onclick = () => self(false);
+        row.append(reveal, got, miss); box.appendChild(row);
+      }
+      box.appendChild(ex); list.appendChild(box);
+    }
+  }
+  document.getElementById('qReset').onclick = () => { for (const k in state) delete state[k]; build(); tally(); };
+  build(); tally();
+}
+
+// ---------- playground
+function softmax(z) { const m = Math.max(...z); const e = z.map(x => Math.exp(x - m)); const s = e.reduce((a, b) => a + b, 0); return e.map(x => x / s); }
+function initPlay() {
+  const W = DATA.numbers.worked, toks = W.tokens;
+  document.getElementById('deckHead').textContent = W.headline.weight.toFixed(4);
+  const mats = { Q: W.q.map(r => [...r]), K: W.k.map(r => [...r]), V: W.v.map(r => [...r]) };
+  const colour = { Q: 'var(--q)', K: 'var(--k)', V: 'var(--v)' };
+  const box = document.getElementById('mats');
+  function drawInputs() {
+    box.innerHTML = '';
+    for (const name of ['Q', 'K', 'V']) {
+      const d = document.createElement('div'); d.className = 'mat';
+      d.innerHTML = `<h3 style="color:${colour[name]}">${name} (3×2)</h3>`;
+      const t = document.createElement('table');
+      mats[name].forEach((row, r) => {
+        const tr = document.createElement('tr'); tr.innerHTML = `<td class="lbl">${toks[r]}</td>`;
+        row.forEach((v, c) => {
+          const td = document.createElement('td'); const inp = document.createElement('input');
+          inp.type = 'number'; inp.step = '1'; inp.value = v; inp.setAttribute('aria-label', `${name} ${toks[r]} ${c + 1}`);
+          inp.oninput = () => { const x = parseFloat(inp.value); mats[name][r][c] = isFinite(x) ? x : 0; compute(); };
+          td.appendChild(inp); tr.appendChild(td);
+        });
+        t.appendChild(tr);
+      });
+      d.appendChild(t); box.appendChild(d);
+    }
+  }
+  function compute() {
+    const { Q, K, V } = mats, dk = Q[0].length;
+    const S = Q.map(q => K.map(k => q.reduce((s, x, i) => s + x * k[i], 0)));
+    const A = S.map(r => softmax(r.map(x => x / Math.sqrt(dk))));
+    const Z = A.map(a => V[0].map((_, j) => a.reduce((s, w, i) => s + w * V[i][j], 0)));
+    const head = toks.map(t => `<th>${t}</th>`).join('');
+    const rows = A.map((a, r) => `<tr class="${r === 2 ? 'hl' : ''}"><td style="text-align:left">${toks[r]}</td>` +
+      S[r].map(s => `<td>${s.toFixed(0 === s % 1 ? 0 : 2)}</td>`).join('') +
+      a.map(w => `<td>${w.toFixed(4)}<span class="cell-bar" style="width:${Math.round(w * 40)}px"></span></td>`).join('') +
+      `<td>[${Z[r].map(z => z.toFixed(2)).join(', ')}]</td></tr>`).join('');
+    document.getElementById('attOut').innerHTML =
+      `<table><thead><tr><th></th><th colspan="3" style="text-align:center">scores q·k</th><th colspan="3" style="text-align:center">weights (softmax of ÷√${dk})</th><th>output</th></tr>
+       <tr><th></th>${head}${head}<th></th></tr></thead><tbody>${rows}</tbody></table>
+       <div class="headline">it → glass = <b>${A[2][0].toFixed(4)}</b> ${Math.abs(A[2][0] - W.headline.weight) < 5e-5 ? '— matches the deck' : '(the deck’s value is ' + W.headline.weight.toFixed(4) + ')'}</div>`;
+  }
+  document.getElementById('attReset').onclick = () => { mats.Q = W.q.map(r => [...r]); mats.K = W.k.map(r => [...r]); mats.V = W.v.map(r => [...r]); drawInputs(); compute(); };
+  drawInputs(); compute();
+
+  // temperature
+  const D = DATA.numbers.decode, tS = document.getElementById('tSlider'), kS = document.getElementById('topK'), pS = document.getElementById('topP');
+  function bars() {
+    const T = +tS.value; document.getElementById('tVal').textContent = T.toFixed(2);
+    const p = softmax(D.logits.map(z => z / T));
+    const order = p.map((v, i) => i).sort((a, b) => p[b] - p[a]);
+    let keep = new Set(order);
+    const k = +kS.value; if (k) keep = new Set(order.slice(0, k));
+    const tp = +pS.value; if (tp) { let c = 0, s = new Set(); for (const i of order) { if (!keep.has(i)) break; s.add(i); c += p[i]; if (c >= tp - 1e-12) break; } keep = s; }
+    const mass = [...keep].reduce((s, i) => s + p[i], 0);
+    document.getElementById('bars').innerHTML = D.tokens.map((t, i) => {
+      const q = keep.has(i) ? p[i] / mass : 0;
+      return `<div class="pbar ${keep.has(i) ? '' : 'dropped'}"><span>${t}</span><span class="track"><span class="fill" style="width:${(100 * q).toFixed(1)}%"></span></span><span>${(100 * q).toFixed(1)}%</span></div>`;
+    }).join('') + `<div class="muted" style="font-size:0.8rem">Kept ${keep.size} of ${D.tokens.length}${keep.size < D.tokens.length ? ', renormalised to 100%' : ''}.</div>`;
+  }
+  [tS, kS, pS].forEach(x => x.oninput = x.onchange = bars); bars();
+
+  // bpe
+  const B = DATA.numbers.bpe, bS = document.getElementById('bSlider');
+  const HUES = ['#bae6fd', '#fde68a', '#bbf7d0', '#fed7aa', '#e9d5ff', '#a5f3fc', '#fecdd3', '#d9f99d', '#c7d2fe', '#fbcfe8', '#99f6e4', '#fef08a'];
+  const MERGED = ['#fcd34d', '#86efac', '#f9a8d4', '#93c5fd', '#fdba74', '#c4b5fd', '#5eead4'];
+  const base = [...new Set(Object.keys(B.corpus).join(''))].sort();
+  const hue = c => { const m = B.steps.findIndex(s => s.merged === c); return m >= 0 ? MERGED[m % MERGED.length] : HUES[base.indexOf(c) % HUES.length]; };
+  function bpe() {
+    const s = +bS.value; document.getElementById('bVal').textContent = s;
+    const words = Object.keys(B.corpus).map(w => ({ w, c: B.corpus[w], ch: s === 0 ? w.split('') : B.steps[s - 1].words[w] }));
+    const next = s < B.steps.length ? B.steps[s] : null;
+    document.getElementById('bpe').innerHTML =
+      words.map(x => `<div class="bperow"><span class="chunks">${x.ch.map(c => `<span style="background:${hue(c)}">${c}</span>`).join('')}</span><span class="cnt">× ${x.c} · ${x.ch.length} tok</span></div>`).join('') +
+      `<div class="muted" style="margin-top:8px;font-size:0.9rem">${next ? `Next merge: <b class="mono">${next.pair.join(' + ')} → ${next.merged}</b> (${next.count}×)` : `Done. Unseen words: ${Object.entries(B.unseen).map(([w, c]) => `<span class="mono">${w} → ${c.join('|')}</span>`).join(', ')}`}</div>` +
+      `<div class="vchips"><span class="vchip" style="background:var(--raised);color:var(--ink-soft);border-color:var(--line)">${base.length} letters</span>${B.steps.slice(0, s).map(st => `<span class="vchip" style="background:${hue(st.merged)}">${st.merged}</span>`).join('')}</div>`;
+  }
+  bS.oninput = bpe; bpe();
+}
+</script>
+</body>
+</html>

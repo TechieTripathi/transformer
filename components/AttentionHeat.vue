@@ -41,6 +41,17 @@
             'scaled'  after dividing by sqrt(d_k)
             'softmax' the attention weights (rows sum to 1)
             'causal'  the same, with the future masked out
+
+  OVERRIDES (Part II: per-head and cross-attention maps). All optional; with
+  none of them set the component draws the Chapter 4 worked example exactly
+  as before.
+    matrix      any rows x cols matrix (e.g. N.multihead.head2.weights, or
+                N.crossattn.weights, which is 2 x 3 - NOT square)
+    rowLabels   labels down the side (the tokens asking)   default: worked tokens
+    colLabels   labels across the top (the tokens asked)   default: rowLabels
+    note        replaces the footnote line
+  `stage` still decides the colour scale: 'raw' / 'scaled' diverging,
+  'softmax' / 'causal' sequential.
 -->
 
 <script setup lang="ts">
@@ -51,12 +62,19 @@ const props = withDefaults(defineProps<{
   stage?: 'raw' | 'scaled' | 'softmax' | 'causal'
   highlightRow?: number
   compact?: boolean
+  matrix?: number[][]
+  rowLabels?: string[]
+  colLabels?: string[]
+  note?: string
 }>(), { stage: 'softmax', compact: false })
 
-const tokens = [...N.worked.tokens]
-const n = tokens.length
+const rowsL = computed(() => props.rowLabels ?? [...N.worked.tokens])
+const colsL = computed(() => props.colLabels ?? rowsL.value)
+const nR = computed(() => rowsL.value.length)
+const nC = computed(() => colsL.value.length)
 
 const matrix = computed<number[][]>(() => {
+  if (props.matrix) return props.matrix
   const w = N.worked
   if (props.stage === 'raw') return w.scores as unknown as number[][]
   if (props.stage === 'scaled') return w.scaled as unknown as number[][]
@@ -72,8 +90,8 @@ const masked = (r: number, c: number) => props.stage === 'causal' && c > r
 const CELL = 74
 const LEFT = 104
 const TOP = 46
-const W = LEFT + n * CELL + 16
-const H = TOP + n * CELL + 34
+const W = computed(() => Math.max(LEFT + nC.value * CELL + 16, 420))
+const H = computed(() => TOP + nR.value * CELL + 34)
 
 const maxAbs = computed(() => Math.max(...matrix.value.flat().map(Math.abs), 1e-9))
 
@@ -94,16 +112,16 @@ const fmt = (v: number) => isWeights.value ? v.toFixed(2) : (props.stage === 'ra
 <template>
   <div class="heat" :class="{ 'is-compact': compact }">
     <svg :viewBox="`0 0 ${W} ${H}`" xmlns="http://www.w3.org/2000/svg">
-      <text :x="LEFT + (n * CELL) / 2" :y="18" class="axis">attending to &#8594;</text>
-      <text v-for="(t, c) in tokens" :key="'c' + t"
+      <text :x="LEFT + (nC * CELL) / 2" :y="18" class="axis">attending to &#8594;</text>
+      <text v-for="(t, c) in colsL" :key="'c' + t"
             :x="LEFT + c * CELL + CELL / 2" :y="TOP - 10" class="head">{{ t }}</text>
 
-      <text :x="14" :y="TOP + (n * CELL) / 2" class="axis side"
-            :transform="`rotate(-90 14 ${TOP + (n * CELL) / 2})`">this word</text>
+      <text :x="14" :y="TOP + (nR * CELL) / 2" class="axis side"
+            :transform="`rotate(-90 14 ${TOP + (nR * CELL) / 2})`">this word</text>
 
       <g v-for="(row, r) in matrix" :key="'r' + r">
         <text :x="LEFT - 12" :y="TOP + r * CELL + CELL / 2 + 5" class="head row"
-              :class="{ lit: highlightRow === r }">{{ tokens[r] }}</text>
+              :class="{ lit: highlightRow === r }">{{ rowsL[r] }}</text>
 
         <g v-for="(val, c) in row" :key="'c' + c">
           <rect :x="LEFT + c * CELL" :y="TOP + r * CELL" :width="CELL" :height="CELL"
@@ -124,11 +142,12 @@ const fmt = (v: number) => isWeights.value ? v.toFixed(2) : (props.stage === 'ra
         </g>
 
         <rect v-if="highlightRow === r"
-              :x="LEFT - 2" :y="TOP + r * CELL - 2" :width="n * CELL + 4" :height="CELL + 4"
+              :x="LEFT - 2" :y="TOP + r * CELL - 2" :width="nC * CELL + 4" :height="CELL + 4"
               fill="none" stroke="var(--ann-ember)" stroke-width="3" rx="4" />
       </g>
 
-      <text v-if="!isWeights" :x="W / 2" :y="H - 10" class="note">
+      <text v-if="note" :x="W / 2" :y="H - 10" class="note">{{ note }}</text>
+      <text v-else-if="!isWeights" :x="W / 2" :y="H - 10" class="note">
         circle size = how strong &#183;
         <tspan fill="var(--ann-circuit)">teal = agree</tspan>,
         <tspan fill="var(--ann-ember)">ember = actively disagree</tspan>

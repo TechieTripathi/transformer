@@ -18,7 +18,8 @@ const DIR = 'pages'
 const problems = []
 let slideNo = 0, checked = 0
 
-for (const file of readdirSync(DIR).filter(f => f.endsWith('.md')).sort()) {
+// Recursive, so the Part II deck under pages/part2/ is held to the same rules.
+for (const file of readdirSync(DIR, { recursive: true }).filter(f => f.endsWith('.md')).sort()) {
   const text = readFileSync(join(DIR, file), 'utf8')
   // Split into slides on frontmatter fences; the first slide starts at the top.
   const parts = text.split(/^---$/m)

@@ -66,8 +66,10 @@ const H = computed(() => TOP + n.value * CELL + 30)
       <text :x="20" :y="TOP + (n * CELL) / 2" class="axis"
             :transform="`rotate(-90 20 ${TOP + (n * CELL) / 2})`">when predicting this word &#8230;</text>
 
+      <!-- No bare <template> wrapper here: Vue 3 renders a directive-less
+           <template> as an inert native element, which silently hid every
+           cell of this grid. -->
       <g v-for="(w, r) in words" :key="'r' + r">
-        <template>
           <text :x="LEFT - 12" :y="TOP + r * CELL + CELL / 2 + 5" class="word end">{{ w }}</text>
           <g v-for="(_, c) in words" :key="'c' + c">
             <rect :x="LEFT + c * CELL" :y="TOP + r * CELL" :width="CELL - 2" :height="CELL - 2"
@@ -79,7 +81,6 @@ const H = computed(() => TOP + n.value * CELL + 30)
             <text :x="LEFT + c * CELL + (CELL - 2) / 2" :y="TOP + r * CELL + (CELL - 2) / 2 + 6"
                   class="glyph" :class="c <= r ? 'yes' : 'no'">{{ c <= r ? '✓' : '✕' }}</text>
           </g>
-        </template>
       </g>
 
       <text :x="W / 2" :y="H - 8" class="note">

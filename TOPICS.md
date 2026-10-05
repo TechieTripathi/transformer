@@ -1,7 +1,7 @@
 # Transformers — Topic Summary
 
 A concise, one-idea-per-topic index. Mirrors the slide order in
-`transformers.md`.
+`transformers.md` (Part I). Part II is indexed in [TOPICS-PART2.md](TOPICS-PART2.md).
 
 **The spine.** Each chapter's opening problem is created by the previous
 chapter's ending. Chapter 1 leaves us with arbitrary integer labels, so
@@ -19,11 +19,24 @@ and where every number came from. Chapter 8 is the calibration chapter.
 
 ---
 
+## Opening
+
+- **How we got here** — One model per task (2010s, RNNs) → attention bolted onto
+  translators (2014) → the Transformer (2017) → scale (2018–20) → ChatGPT (2022)
+  → agents. The design won because it kept improving as it grew.
+
 ## Chapter 1 · Text is not letters
 
 - **What the machine actually sees** — Text is cut into tokens; the input to the
   whole machine is a short list of integers, and the space belongs to the word
   after it.
+- **Three ways to cut a sentence** — Words (huge vocabulary, OOV, *bear* ≠
+  *bears*), characters (28 tokens for a 5-word sentence), subwords (the
+  compromise: `un|bear|able`). Vocabulary size against sequence length.
+- **How the chunks are chosen** — Byte-pair encoding on a six-word corpus:
+  `ea`, `in`, `ing`, `ead`, `read`, `bea`, `bear`. Unseen *bearing* becomes
+  `bear|ing` — no `<UNK>` needed. The vocabulary is whatever the training text
+  made common.
 - **Four times the same word** — `Egg`, `␣Egg`, `␣egg`, `␣EGG` are four
   unrelated ids, two of which are not even single tokens. The model learns they
   mean the same thing only from use.
@@ -37,14 +50,21 @@ and where every number came from. Chapter 8 is the calibration chapter.
 - **The token that was never trained** — `GoldMagikarp` earned a token when the
   chunks were counted, then its text was filtered out before training. The
   machine-learning equivalent of reading uninitialised memory.
+- **Tokens that are not text** — `<BOS>`, `<EOS>`, `<PAD>`, `<UNK>`. GPT-2's
+  `<|endoftext|>` is id 50256, the last of 50,257. Conventions, not standards.
 - **One word explains all of it** — Six questions, one answer: tokenization.
 
 ## Chapter 2 · Turning words into numbers
 
 - **A label is not a meaning** — Token ids order words arbitrarily; a vector of
   numbers lets similar words agree slot by slot. That vector is an *embedding*.
+- **Why not one switch per word?** — One-hot vectors: every pair orthogonal, so
+  "different" but never "similar", and 50,257 numbers long.
 - **Words become places** — Similar words land near each other. Distributional
   similarity is not meaning, and the distinction matters.
+- **Where the places come from: guess the neighbour** — Word2Vec's proxy task
+  (CBOW / skip-gram). Throw the predictions away; the middle layer is the
+  embedding.
 - **Directions mean things** — `sushi − Japan + Germany ≈ bratwurst`. The famous
   `king − man + woman` version is partly an artefact of the search being
   forbidden to return its own inputs — paid off in chapter 8.
@@ -54,10 +74,16 @@ and where every number came from. Chapter 8 is the calibration chapter.
 - **Just add the position in** — A position vector is added to the word vector,
   so one vector carries both facts. Modern models rotate instead of adding.
 
+- **One vector per word is not enough** — *River bank* and *money bank* get the
+  same vector. The meaning in this sentence has to come from the other words.
+
 ## Chapter 3 · Which words matter?
 
 - **The boy dropped the glass because *it* was slippery** — The question the
   talk is built around. You knew instantly, without checking every word.
+- **How machines answered this before 2017** — RNNs carry one running memory:
+  it fades (vanishing gradients; LSTMs patch it) and it queues (no
+  parallelism). The 2014 fix: connect directly to any earlier word.
 - **You weighted the words** — Uneven weighting is the idea, and it has a name.
 - **The spotlight — and what is wrong with it** — A spotlight leaves the stage
   dark; attention leaves every light on. *"Actual human attention is selective,
@@ -100,6 +126,9 @@ output for "it": [0.8983, 1.1003]   ≈   v_glass = [1, 1]
 - **It is a weighted average — that is all** — A one-hot weighting is a lookup
   table; a flat one is a plain average; attention is the continuum between, and
   the model learns where on it to sit.
+- **The whole chapter in one line** — `softmax(QKᵀ/√d_k)V`, every symbol mapped
+  to the step that computed it, with shapes 3×4 → 3×2 → 3×3 → 3×2. Named
+  *self*-attention; cross-attention plants Part II.
 - **One set of weights is not enough** — Multi-head. A few heads do something
   nameable, most do not, and you need them all *while it is learning*.
 
@@ -137,6 +166,9 @@ output for "it": [0.8983, 1.1003]   ≈   v_glass = [1, 1]
 - **The context window** — Input + output ≤ the limit. Quadratic cost from
   chapter 4, counted in tokens from chapter 1.
 
+- **Where we are** — Greedy/argmax vs sampling, the three knobs, and the
+  context window — none of which touch the learned numbers.
+
 ## Chapter 7 · Inside the block
 
 - **Look, then think** — Attention is communication, feed-forward is
@@ -145,6 +177,8 @@ output for "it": [0.8983, 1.1003]   ≈   v_glass = [1, 1]
 - **The road that runs through everything** — Residual connections add rather
   than replace, which is what makes ninety-six layers possible. A vector that
   starts as *king* is nudged until it means Macbeth.
+- **Keeping the numbers in range** — LayerNorm: `[20, 40, 40, 100]` → mean 50,
+  std 30 → `[−1.00, −0.33, −0.33, 1.67]`, then a learned scale and shift.
 - **"Isn't that cheating?"** — Setting future scores to zero fails, because
   `e⁰ = 1`. Setting them to −∞ before softmax works exactly. It sees everything;
   we blindfold it.

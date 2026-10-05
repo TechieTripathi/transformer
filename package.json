@@ -4,14 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "slidev transformers.md --open",
+    "dev:2": "slidev transformers-2.md --open",
     "build": "slidev build transformers.md",
+    "build:2": "slidev build transformers-2.md",
     "export": "slidev export transformers.md --with-clicks",
+    "export:2": "slidev export transformers-2.md --with-clicks",
     "verify": "python3 scripts/verify-attention.py",
     "verify:torch": "python3 scripts/verify-attention.py --torch",
     "numbers": "python3 scripts/verify-attention.py --torch --emit-ts",
     "check:clicks": "node scripts/check-clicks.mjs",
-    "check:overflow": "node scripts/check-overflow.mjs http://localhost:3030 73",
-    "shots": "node scripts/screenshot.mjs http://localhost:3030 shots"
+    "check:overflow": "node scripts/check-overflow.mjs http://localhost:3030 84",
+    "check:overflow:2": "node scripts/check-overflow.mjs http://localhost:3031 51",
+    "shots": "node scripts/screenshot.mjs http://localhost:3030 shots",
+    "study": "node scripts/build-study.mjs"
   },
   "dependencies": {
     "@slidev/cli": "^52.19.0",

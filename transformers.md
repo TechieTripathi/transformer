@@ -25,7 +25,7 @@ drawings:
   persist: false
 selectable: true
 download: true
-duration: 120min
+duration: 135min
 timer: countdown
 src: ./pages/00-title.md
 ---

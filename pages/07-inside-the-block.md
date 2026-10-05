@@ -36,7 +36,7 @@ clicks: 5
   <div v-click="2" class="bstep ffn">
     <div class="bn">Feed-forward</div>
     <div class="bq">&#8220;What do I make of that?&#8221;</div>
-    <div class="bd">Each word <b>thinks on its own</b>. No looking sideways at all.</div>
+    <div class="bd">Each word <b>thinks on its own</b>. No looking sideways at all. Widen the vector about <b>4&#215;</b>, zero the negatives, shrink it back.</div>
   </div>
 </div>
 
@@ -158,6 +158,72 @@ For anyone who has met calculus: addition sends gradients through unchanged,
 so this also gives training a clear path back to the early layers. One
 sentence, and only if the room is with you.
 
+Transition: "One more piece of plumbing goes with it."
+-->
+
+---
+chapter: '7 · Inside the block'
+clicks: 4
+---
+
+# Keeping the numbers in range
+
+<span class="eyebrow structure">Layer normalisation</span>
+
+<div v-click="1" class="key-message">Ninety-six blocks each <b>add</b> something to the vector. Left alone, the numbers drift &#8212; some huge, some tiny. So every block <b>re-scales</b> its input first.</div>
+
+<div v-click="2" class="calc-strip ln">
+  <span class="calc-chip"><span class="lbl">a vector</span>[ 20, 40, 40, 100 ]</span>
+  <span class="calc-op">&#8594;</span>
+  <span class="calc-chip"><span class="lbl">average, spread</span>mean 50 &#183; std 30</span>
+  <span class="calc-op">&#8594;</span>
+  <span class="calc-chip fwd"><span class="lbl">subtract mean, divide by spread</span>[ &#8722;1.00, &#8722;0.33, &#8722;0.33, 1.67 ]</span>
+</div>
+
+<div v-click="3" class="obs">
+  <div>Same <b>pattern</b> &#8212; the last number is still the biggest &#8212; but now centred on 0 with a spread of 1, whatever the previous block did to the scale.</div>
+  <div>Then two <b>learned</b> numbers per slot, a scale and a shift, let the model undo the squeeze wherever it helps.</div>
+</div>
+
+<div v-click="4" class="transition-line">Residuals keep the road open; normalisation keeps the traffic at a sane speed. <span class="arrow">Together they are why stacking ninety-six blocks trains at all.</span></div>
+
+<style>
+.ln { justify-content: center; font-size: 0.95rem; margin: 0.6em 0; }
+.obs { display: flex; flex-direction: column; gap: 0.3em; margin-top: 0.5em; font-size: 0.86rem; color: var(--ann-ink-soft); }
+.obs b { color: var(--ann-indigo); }
+.slidev-layout .key-message { margin: 0.3em 0 0.3em; font-size: 1rem; }
+.slidev-layout .transition-line { margin-top: 0.5em; padding-top: 0.4em; }
+</style>
+
+<!--
+One minute. The numbers come from scripts/verify-attention.py section 10,
+cross-checked against PyTorch's layer_norm.
+
+[click] The problem: the residual road from the previous slide means every
+block ADDS to the vector. Ninety-six additions later the scale can be
+anything. Big numbers also push softmax into saturation - the same reason we
+divided by root-d in chapter 4.
+
+[click] The arithmetic: mean 50, standard deviation 30. Subtract, divide.
+Do it out loud for the last entry: (100 - 50) / 30 = 1.67.
+
+[click] The pattern survives; only the scale changes. Then the learned scale
+and shift - two more sets of knobs, found by training like everything else.
+At the start of training they are 1 and 0, i.e. "leave it alone".
+
+[click] Residual plus normalisation: the two pieces of plumbing that make
+depth trainable. Stanford CME 295 describes both as being there for stable,
+fast convergence - that is exactly the right framing.
+
+For the curious: the 2017 paper normalised AFTER each addition ("post-norm");
+almost every modern model normalises BEFORE each sub-layer ("pre-norm"),
+which trains more stably when very deep. Many also use a cheaper variant,
+RMSNorm, that skips subtracting the mean.
+
+Likely student question: "Isn't this the same as batch norm?" Answer:
+"Same idea, different direction: layer norm normalises across the numbers
+of ONE vector, so it doesn't care how many sentences are in the batch."
+
 Transition: "Now the question I've been dodging since chapter four."
 -->
 
@@ -242,10 +308,17 @@ clicks: 3
 
 <span class="eyebrow math">Mechanism</span>
 
+<div class="maskpair">
 <div v-click="1">
 
 <MaskGrid :words="['The','cat','is','sleeping','on','the','warm','mat']" compact />
 
+</div>
+<div v-click="2">
+
+<AttentionHeat stage="causal" compact />
+
+</div>
 </div>
 
 <div v-click="2" class="obs">
@@ -259,13 +332,19 @@ clicks: 3
 .obs { display: flex; flex-direction: column; gap: 0.28em; margin-top: 0.35em; font-size: 0.83rem; color: var(--ann-ink-soft); }
 .obs b { color: var(--ann-indigo); }
 .slidev-layout .transition-line { margin-top: 0.4em; padding-top: 0.35em; }
+.maskpair { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.2em; align-items: center; }
 </style>
 
 <!--
 [click] The staircase. Trace one row with your finger, out loud, using the
 real words - that is why the axes carry words rather than indices.
 
-[click] Two observations. The second is worth stressing: unlike almost
+[click] The right-hand panel is the chapter 4 worked example with the mask
+applied (numbers from scripts/verify-attention.py): glass, first in line, can
+only attend to itself, so it gives itself 1.00. The dashes are not zeros the
+model computed - they were never scored.
+
+Two observations. The second is worth stressing: unlike almost
 everything else in this lecture, there is nothing learned here. It is a fixed
 rule. Students find that reassuring after chapter 4.
 
@@ -522,8 +601,10 @@ clicks: 2
 
 <span class="eyebrow structure">Chapter 7 &#183; takeaway</span>
 
+<PipelineMap :dim-others="false" compact />
+
 <div v-click="1" class="recap big">
-  <div>A block = <b>attention</b> (words talk) then <b>feed-forward</b> (each word thinks), <b>added</b> onto a running total.</div>
+  <div>A block = <b>attention</b> (words talk) then <b>feed-forward</b> (each word thinks), <b>added</b> onto a running total and <b>normalised</b>.</div>
   <div>The <b>mask</b> blindfolds the future, which is also what makes the <b>KV cache</b> safe.</div>
   <div>Every number was found by being wrong about the next word, trillions of times.</div>
 </div>

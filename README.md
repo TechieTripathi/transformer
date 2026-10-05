@@ -1,17 +1,37 @@
 # Transformers
 
-A standalone Slidev deck: **73 slides, ~120 minutes**, written for a single
-large class (~500 students) with the full ability range in the room. It
-assumes **no prior knowledge** — tokenization, embeddings, attention,
-decoding, the block, and training are all built from nothing.
+Two Slidev decks and a study kit.
+
+- **Part I** — `transformers.md`: **84 slides, ~135 minutes**, written for a single
+  large class (~500 students) with the full ability range in the room. It
+  assumes **no prior knowledge** — tokenization, embeddings, attention,
+  decoding, the block, and training are all built from nothing.
+- **Part II** — `transformers-2.md`: **51 slides, ~75 minutes**. The original 2017
+  encoder–decoder: why recurrence had to go, positions done properly, multi-head
+  attention with real shapes, the encoder, the decoder and cross-attention, one
+  sentence traced through the base model, and the training tricks. Assumes Part I.
+- **Study kit** — `docs/study/`: cheat sheet, flashcards and quiz in Markdown,
+  plus `transformers-study.html`, a self-contained interactive page (open it
+  locally; no network needed).
+
+Both decks were extended using Stanford CME 295, lecture 1
+([video](https://www.youtube.com/watch?v=114i2Kz-LZA);
+[organized notes](docs/Stanford_CME295_Transformers_LLMs_Organized_Notes.md)) as a
+reference for coverage. All slide text, diagrams and numbers are original to these decks.
 
 ```bash
 npm install
-npm run verify     # re-derive every number on every slide
-npm run dev        # http://localhost:3030
-npm run build      # static site, with a downloadable PDF
-npm run export     # PDF only
+npm run verify     # re-derive every number on every slide (both decks)
+npm run dev        # Part I  - http://localhost:3030
+npm run dev:2      # Part II
+npm run build      # Part I static site, with a downloadable PDF
+npm run build:2    # Part II
+npm run export     # PDF only (export:2 for Part II)
+npm run study      # rebuild docs/study/transformers-study.html from the Markdown
 ```
+
+Running short on time in Part I? Slides 3 (*How we got here*) and 19 (*Word2Vec*)
+can be given `hide: true` in their frontmatter without breaking anything later.
 
 ## The numbers
 
@@ -22,8 +42,12 @@ source for every figure in the deck.
 
 It re-derives the worked attention example, the decoding distributions at every
 temperature, the top-k and top-p cuts, the softmax-saturation demonstration,
-the loss table, and the tokenizations — and `--torch` cross-checks the attention
-output against PyTorch's `F.scaled_dot_product_attention` in float64.
+the loss table, the tokenizations and vocabulary sizes, a BPE merge trace,
+sinusoidal positional encodings (with a rotation property test), a two-head
+attention, a cross-attention example, LayerNorm, label smoothing, and the shapes
+and parameter count of the 2017 base model — measured by a real forward pass.
+`--torch` cross-checks attention, multi-head (`nn.MultiheadAttention`),
+cross-attention, LayerNorm and the label-smoothed loss against PyTorch in float64.
 
 `composables/useDeckNumbers.ts` is **generated** from it (`npm run numbers`) and
 imported by every component, so the deck has exactly one source of truth.
@@ -61,7 +85,8 @@ obvious from the back of a lecture hall.
 npm run dev -- --port 3030
 
 node scripts/check-clicks.mjs                          # declared clicks vs v-click indices used
-node scripts/check-overflow.mjs http://localhost:3030 73       # content colliding with the chapter footer
+node scripts/check-overflow.mjs http://localhost:3030 84       # content colliding with the chapter footer
+                                                               # (Part II: npx slidev transformers-2.md, then 51)
 node scripts/screenshot.mjs http://localhost:3030 out/ # capture every slide, then view at 25%
 ```
 
@@ -90,19 +115,25 @@ colours meaning the same things.
 
 `styles/index.css`, `components/`, `composables/` and `global-bottom.vue` are
 picked up by Slidev for any entry file in this directory, because `userRoot` is
-the entry file's folder. **`transformers.md` must stay at the repo
-root** — moving it into a subfolder would break that.
+the entry file's folder. **`transformers.md` and `transformers-2.md` must stay at
+the repo root** — moving either into a subfolder would break that.
 
 ```
-transformers.md                entry: headmatter + 9 src includes
-pages/                         one file per chapter, 00–08
+transformers.md                Part I entry: headmatter + 9 src includes
+transformers-2.md              Part II entry
+pages/                         Part I, one file per chapter, 00–08
+pages/part2/                   Part II, one file per chapter, 00–08
 components/                    Callout, PipelineMap, ProbBars, AttentionHeat,
                                AttentionTrace, TokenStrip, SpotlightSentence,
-                               VectorMap, MaskGrid
+                               VectorMap, MaskGrid, Timeline, BpeTrace,
+                               RnnUnroll, PosEncStrip, ShapeTrace, EncDecMap
 composables/useDeckNumbers.ts  GENERATED — do not edit by hand
 styles/index.css               palette, utilities, Q/K/V colours
 global-bottom.vue              chapter + page footer
-scripts/                       verify-attention.py, check-clicks, screenshot
+scripts/                       verify-attention.py, check-clicks, screenshot,
+                               build-study.mjs
+docs/study/                    cheatsheet.md, flashcards.md, quiz.md (sources),
+                               _template.html, transformers-study.html (generated)
 ```
 
 Presenter notes are the real script: nearly every slide carries longer notes

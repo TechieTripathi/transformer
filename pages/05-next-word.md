@@ -169,7 +169,7 @@ clicks: 5
 </div>
 
 <div v-click="4" class="obs">
-  <div>Each output word is <b>glued onto the input</b> and the whole thing runs again. Fifty thousand scores, softmax, pick one. Every single word.</div>
+  <div>Each output word is <b>glued onto the input</b> and the whole thing runs again. Fifty thousand scores, softmax, pick one. Every single word &#8212; until the token it picks is <code>&lt;EOS&gt;</code>, the end marker from chapter 1, or it hits a length limit.</div>
   <div>The typing effect you see in a chatbot is <b>not an animation</b>. That is the actual speed of the actual machine.</div>
 </div>
 
@@ -197,7 +197,9 @@ It reads like you scan a page &#8212; all at once. It writes like you text &#821
 part of the input. Emphasise that the ENTIRE machine runs again from scratch
 for each word - all the attention, all the layers.
 
-[click] Two observations. The second one always gets a reaction: the
+[click] Two observations. Point at <EOS>: the model decides when to stop
+the same way it decides everything else - it predicts the end-of-sequence
+token. The second observation always gets a reaction: the
 streaming text in ChatGPT is not a designed effect to look futuristic, it is
 the machine working. Worth saying because it makes the whole thing concrete.
 

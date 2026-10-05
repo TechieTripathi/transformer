@@ -303,7 +303,9 @@ interchangeably and then cannot follow anything they read.
 can train one on a laptop in minutes.
 [click] LLM: that shape, at scale, trained on a lot.
 
-[click] The equation.
+[click] The equation. Point back at the timeline from the start of the
+lecture: 2017 is the left-hand term; 2018-2022 is the rest of the equation
+being filled in.
 
 [click] The closing line, which is the honest historical claim: the ideas
 were not all new, and the transformer's real contribution was making training
@@ -479,6 +481,7 @@ chapter: ''
   <div><b>&#8220;Let&#8217;s build GPT from scratch&#8221;</b> &#8212; Andrej Karpathy. Builds a working transformer in two hours of video and 225 lines of code.</div>
   <div><b>3Blue1Brown, chapters 5&#8211;7</b> &#8212; the best visual treatment of attention and embeddings that exists.</div>
   <div><b>The Illustrated Transformer</b> &#8212; Jay Alammar. The diagrams that taught most of the field.</div>
+  <div><b>Stanford CME 295, Transformers &amp; LLMs</b> &#8212; lecture 1 on YouTube. The same path as today, a level deeper; it shaped the history, tokenizer, Word2Vec and RNN slides.</div>
   <div><b>Dive into Deep Learning</b> (d2l.ai) and <b>The Annotated Transformer</b> &#8212; if you want the code and the maths in full.</div>
 </div>
 

@@ -39,6 +39,15 @@ jobs:
           --base /${{ github.event.repository.name }}/
           --router-mode hash
 
+      # Part II is a second entry file sharing components/ and styles/.
+      # Built after Part I, because Part I's build empties dist/.
+      - name: Build the Part II deck
+        run: >
+          npx slidev build transformers-2.md
+          --out dist/part2
+          --base /${{ github.event.repository.name }}/part2/
+          --router-mode hash
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

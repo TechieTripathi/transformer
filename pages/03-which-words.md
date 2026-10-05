@@ -66,6 +66,77 @@ going to put a number on that connection. Not a hand-wave - an actual number,
 computed from these words, on this slide, and you will be able to check the
 arithmetic." Then pay it on the payoff slide.
 
+Transition: "Before I tell you how YOU did it - here is how machines tried,
+before 2017."
+-->
+
+---
+chapter: '3 · Which words matter?'
+clicks: 4
+---
+
+# How machines answered this before 2017
+
+<span class="eyebrow why">The old answer: a running memory</span>
+
+<div v-click="1">
+
+<RnnUnroll :mode="$clicks < 2 ? 'rnn' : $clicks < 3 ? 'fade' : 'attention'" compact />
+
+</div>
+
+<div class="flaws">
+  <div v-click="1" class="fl"><b>Recurrent networks (RNNs)</b> read one word at a time and squeeze everything so far into one memory vector, <code>h</code>.</div>
+  <div v-click="2" class="fl bad"><b>It fades.</b> Each step squeezes the memory again, so early words wash out over long passages. <b>LSTMs</b> added a better-protected memory lane; it helped, but did not cure it.</div>
+  <div v-click="2" class="fl bad"><b>It queues.</b> Step 7 cannot start until step 6 is done. However many processors you own, it reads one word at a time.</div>
+  <div v-click="3" class="fl good"><b>The fix</b>, first tried in translation in 2014: let a word reach back to <b>any</b> earlier word <b>directly</b>. In 2017 the Transformer kept only that, and threw the chain away.</div>
+</div>
+
+<div v-click="4" class="transition-line">Which is much closer to what <b>you</b> just did. <span class="arrow">So how did you know?</span></div>
+
+<style>
+.flaws { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3em 1.1em; margin-top: 0.1em; }
+.fl { font-size: 0.76rem; line-height: 1.38; color: var(--ann-ink-soft); padding: 0.25em 0.7em; border-left: 3px solid var(--ann-indigo); }
+.fl.bad { border-left-color: var(--ann-ember); }
+.fl.good { border-left-color: var(--ann-circuit); }
+.fl b { color: var(--ann-ink); }
+.slidev-layout .transition-line { margin-top: 0.35em; padding-top: 0.3em; }
+</style>
+
+<!--
+Ninety seconds. This gives the room the "why" for attention: the problem it
+replaced. Keep it to a picture and two flaws - no equations.
+
+[click] The chain. "Before 2017, the standard machine read left to right,
+like this. Each box takes the next word plus its memory from the previous
+box, and passes an updated memory on. By the time it reaches 'it', the only
+record of 'glass' is whatever survived in that one vector."
+
+[click] The two flaws.
+Fade: the picture shows what is left of glass shrinking at each step. Be
+honest that the dot sizes are an illustration, not a measurement. The
+technical name is the vanishing-gradient problem: during training, the
+signal connecting a word to something far back gets multiplied by small
+numbers at every step and shrinks towards zero. LSTMs (long short-term
+memory) add a separate "cell state" lane designed to carry information
+further. Better, not solved.
+Queue: the step numbers. You cannot compute step 7 before step 6. That makes
+training on a whole internet painfully slow - GPUs are good at doing
+thousands of things at once, and this design hands them one thing at a time.
+
+[click] The fix. Attention was first added ON TOP of recurrent translators
+(Bahdanau et al., 2014): when writing a word of the translation, look
+directly at the relevant source words. The 2017 paper's move was to delete
+the chain entirely and keep only the direct connections. Point at the arcs:
+"it" reaches glass in one step, however far back glass is.
+
+[click] Back to the room: they did not carry a fading memory word by word -
+they jumped straight to glass.
+
+Likely student question: "Are RNNs dead?" Answer: "Mostly replaced for
+language, but there's active research on recurrent-style models that train
+in parallel - the ideas keep coming back."
+
 Transition: "So how DID you know?"
 -->
 

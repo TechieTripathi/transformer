@@ -32,7 +32,7 @@ clicks: 5
 <div class="two">
   <div v-click="1" class="cw">
     <div class="ch">Greedy</div>
-    <div class="cs">Always take the highest number.</div>
+    <div class="cs">Always take the highest number &#8212; the <b>argmax</b>.</div>
     <div class="cb"><b>blue</b>, every time. Same prompt, same answer, forever.</div>
     <div class="cc good">Predictable. Safe.</div>
     <div class="cc bad">Repetitive, and often oddly flat.</div>
@@ -578,6 +578,41 @@ Answer: "They do, and getting there took real engineering to dodge that
 square - and there's good evidence models get less reliable at using the
 middle of a very long context even when it technically fits. Big window is
 not the same as good use of it."
+
+Transition: "Where we are."
+-->
+
+---
+chapter: '6 · The knobs you actually turn'
+clicks: 2
+---
+
+# Where we are
+
+<span class="eyebrow structure">Chapter 6 &#183; takeaway</span>
+
+<PipelineMap highlight="next" />
+
+<div v-click="1" class="recap">
+  <div><b>Greedy</b> (argmax) always takes the top token; <b>sampling</b> rolls a weighted die.</div>
+  <div><b>Temperature</b> sharpens or flattens the odds. <b>Top-k</b> keeps a fixed number of options; <b>top-p</b> keeps enough to cover the probability.</div>
+  <div>None of it touches the <b>learned</b> numbers &#8212; and everything has to fit in the <b>context window</b>.</div>
+</div>
+
+<div v-click="2" class="transition-line">We have treated the middle of the machine as a box. <span class="arrow">Time to open it.</span></div>
+
+<style>
+.recap { display: flex; flex-direction: column; gap: 0.3em; margin-top: 0.6em; font-size: 0.88rem; color: var(--ann-ink-soft); }
+.recap b { color: var(--ann-indigo); }
+</style>
+
+<!--
+Thirty seconds. Chapter 6 previously ended without a map, the only chapter
+that did; this restores the rhythm. Point at the lit "Next token" box: every
+knob in this chapter lives there, after the model has done all its work.
+
+[click] Three lines.
+[click] Hand off to chapter 7.
 
 Transition: "We've been treating the middle of the machine as a box. Let's
 open it."
